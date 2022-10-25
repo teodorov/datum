@@ -89,9 +89,10 @@ apply(closure, arguments, env) {
       frame[symI.current] = args.car;
       args = args.tail;
     }
+    //eval the body in the frame context
     return eval(body, frame);
   }
-  return closure;
+  throw ArgumentError('apply invoked with non-closure target');
 }
 
 applyPrimitive(closure, arguments, env) {
@@ -108,14 +109,14 @@ evalList(args, env) {
 class PrimitiveEnvironment extends Environment {
   PrimitiveEnvironment(super.parent) {
     //basic functions
-    definePrimitive(datum.Primitive('define', _notSupportedError));
+    definePrimitive(datum.Primitive('define', _define));
     definePrimitive(datum.Primitive('lambda', _lambda));
     definePrimitive(datum.Primitive('quote', _quote));
     definePrimitive(datum.Primitive('eval', _notSupportedError));
     definePrimitive(datum.Primitive('apply', _notSupportedError));
     definePrimitive(datum.Primitive('let', _notSupportedError));
-    definePrimitive(datum.Primitive('set!', _notSupportedError)); //assignment
-    definePrimitive(datum.Primitive('print', _notSupportedError));
+    definePrimitive(datum.Primitive('set!', _set)); //assignment
+    definePrimitive(datum.Primitive('print', _print));
 
     //control structures
     definePrimitive(datum.Primitive('if', _if));
@@ -153,12 +154,16 @@ class PrimitiveEnvironment extends Environment {
   }
 
   static _define(Environment e, args) {
-    return datum.Null.instance;
+    if (args.car is datum.Symbol) {
+      return e.define(args.car, evalList(args.cdr, e));
+    }
+    //if (args.car is datum.Pair) {}
+    throw ArgumentError('define invoked with invalid arguments');
   }
 
   static _lambda(Environment e, args) {
     var fe = Environment(e);
-    var body = args.cdr;
+    var body = args.cdr.car;
     for (args = args.car; args != datum.Null.instance; args = args.tail) {
       var symbol = eval(args.car, e);
       fe.define(symbol, datum.Null.instance);
@@ -169,6 +174,20 @@ class PrimitiveEnvironment extends Environment {
 
   static _quote(Environment e, args) {
     return args.car;
+  }
+
+  static _set(Environment e, args) {
+    return e[args.car] = eval(args.cdr.car, e);
+  }
+
+  static _print(Environment e, args) {
+    String data = '';
+    while (args != datum.Null.instance) {
+      data += eval(args.car, e);
+      args = args.tail;
+    }
+    print(data);
+    return datum.Null.instance;
   }
 
   static _if(Environment e, args) {
