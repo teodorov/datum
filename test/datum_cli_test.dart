@@ -109,11 +109,20 @@ void main() {
 
   test("eval define", () {
     var exp = reader('((define (false? (quote a)) (= a false)) true)');
-    var res = eval(exp, primitives);
-    identical(res, datum.Boolean.dFalse);
+    var res = eval(exp, primitives.create());
+    expect(res, datum.Boolean.dFalse);
+
+    exp = reader('((define (false? (quote a)) (= a false)) (false? true))');
+    res = evalList(exp, primitives.create());
+    expect(res.cdr.car, datum.Boolean.dFalse);
 
     exp = reader('(define two 2)');
     res = eval(exp, primitives);
     expect(res.value, 2);
+  });
+
+  test('eval print', () {
+    var exp = reader('(print "hello world from datum!")');
+    identical(eval(exp, primitives), datum.Null.instance);
   });
 }

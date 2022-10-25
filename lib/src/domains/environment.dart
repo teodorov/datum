@@ -189,7 +189,7 @@ class PrimitiveEnvironment extends Environment {
   static _print(Environment e, args) {
     String data = '';
     while (args != datum.Null.instance) {
-      data += eval(args.car, e);
+      data += eval(args.car, e).literal;
       args = args.tail;
     }
     print(data);
@@ -242,9 +242,7 @@ class PrimitiveEnvironment extends Environment {
     if (operand is! datum.Boolean) {
       throw ArgumentError("'not' defined only with boolean arguments");
     }
-    return operand == datum.Boolean.dTrue
-        ? datum.Boolean.dFalse
-        : datum.Boolean.dTrue;
+    return datum.Boolean.fromDart(operand != datum.Boolean.dTrue);
   }
 
   static _plus(Environment e, args) {
@@ -293,37 +291,37 @@ class PrimitiveEnvironment extends Environment {
   static _lessThan(Environment e, args) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
-    return lhs.compareTo(rhs) < 0;
+    return datum.Boolean.fromDart(lhs.compareTo(rhs) < 0);
   }
 
   static _lessThanOrEqual(Environment e, args) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
-    return lhs.compareTo(rhs) <= 0;
+    return datum.Boolean.fromDart(lhs.compareTo(rhs) <= 0);
   }
 
   static _equal(Environment e, args) {
     final lhs = eval(args.car, e);
     final rhs = eval(args.cdr.car, e);
-    return lhs == rhs;
+    return datum.Boolean.fromDart(lhs == rhs);
   }
 
   static _notEqual(Environment e, args) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
-    return lhs != rhs;
+    return datum.Boolean.fromDart(lhs != rhs);
   }
 
   static _greaterThan(Environment e, args) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
-    return lhs.compareTo(rhs) > 0;
+    return datum.Boolean.fromDart(lhs.compareTo(rhs) > 0);
   }
 
   static _greaterThanOrEqual(Environment e, args) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
-    return lhs.compareTo(rhs) >= 0;
+    return datum.Boolean.fromDart(lhs.compareTo(rhs) >= 0);
   }
 
   static _cons(Environment e, args) {

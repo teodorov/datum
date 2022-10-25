@@ -132,6 +132,10 @@ class Boolean extends Literal {
   static final dTrue = Boolean._intern('true');
   static final dFalse = Boolean._intern('false');
 
+  factory Boolean.fromDart(core.bool value) {
+    return value ? dTrue : dFalse;
+  }
+
   @core.override
   accept(visitor) {
     return visitor.visitBoolean(this);
