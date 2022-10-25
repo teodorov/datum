@@ -1,0 +1,17 @@
+(
+    [mult]=(
+            lambda x (
+                      lambda y (* x y))) 
+        
+    
+    [fact]=(
+            lambda x (
+                      if (= x 1)
+                      1
+                      (mult x) (fact (- x 1))))
+
+
+    fact 4)
+    
+
+

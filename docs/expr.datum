@@ -1,0 +1,11 @@
+(Program
+    (declarations 
+        [a]=(VariableDecl (name: a) (initial: 14))
+        [b]=(VariableDecl (name: g) (initial: 32)))
+ (statements
+     (= a 25)
+     (= a (+ b c))))
+    
+
+    
+
