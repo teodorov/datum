@@ -106,4 +106,14 @@ void main() {
     var res = eval(exp, primitives);
     expect(res.value, 5);
   });
+
+  test("eval define", () {
+    var exp = reader('((define (false? (quote a)) (= a false)) true)');
+    var res = eval(exp, primitives);
+    identical(res, datum.Boolean.dFalse);
+
+    exp = reader('(define two 2)');
+    res = eval(exp, primitives);
+    expect(res.value, 2);
+  });
 }

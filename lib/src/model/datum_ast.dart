@@ -151,6 +151,12 @@ class Number extends Literal {
   accept(visitor) {
     return visitor.visitNumber(this);
   }
+
+  @core.override
+  core.bool operator ==(other) => (other is Number) && (value == other.value);
+
+  @core.override
+  core.int get hashCode => value.hashCode;
 }
 
 class Character extends Literal {

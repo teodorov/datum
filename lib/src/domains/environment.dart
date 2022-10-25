@@ -155,9 +155,15 @@ class PrimitiveEnvironment extends Environment {
 
   static _define(Environment e, args) {
     if (args.car is datum.Symbol) {
-      return e.define(args.car, evalList(args.cdr, e));
+      return e.define(args.car, eval(args.cdr.car, e));
     }
-    //if (args.car is datum.Pair) {}
+    if (args.car is datum.Pair) {
+      final datum.Pair head = args.car;
+      if (head.car is datum.Symbol) {
+        return e.define(head.car as datum.Symbol,
+            _lambda(e, datum.Pair(head.cdr!, args.cdr)));
+      }
+    }
     throw ArgumentError('define invoked with invalid arguments');
   }
 
@@ -297,8 +303,8 @@ class PrimitiveEnvironment extends Environment {
   }
 
   static _equal(Environment e, args) {
-    final lhs = eval(args.car, e).value;
-    final rhs = eval(args.cdr.car, e).value;
+    final lhs = eval(args.car, e);
+    final rhs = eval(args.cdr.car, e);
     return lhs == rhs;
   }
 
