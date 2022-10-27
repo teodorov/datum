@@ -106,21 +106,26 @@ evalList(args, env) {
   return datum.Pair(eval(args.car, env), evalList(args.cdr, env));
 }
 
+String printer(datum.Datum e) {
+  return e.toString();
+}
+
 class PrimitiveEnvironment extends Environment {
   PrimitiveEnvironment(super.parent) {
     //basic functions
     definePrimitive(datum.Primitive('define', _define));
     definePrimitive(datum.Primitive('lambda', _lambda));
     definePrimitive(datum.Primitive('quote', _quote));
-    definePrimitive(datum.Primitive('eval', _notSupportedError));
-    definePrimitive(datum.Primitive('apply', _notSupportedError));
-    definePrimitive(datum.Primitive('let', _notSupportedError));
+    definePrimitive(datum.Primitive('eval', _eval));
+    definePrimitive(datum.Primitive('apply', _apply));
+    definePrimitive(datum.Primitive('let', _let));
     definePrimitive(datum.Primitive('set!', _set)); //assignment
     definePrimitive(datum.Primitive('print', _print));
 
     //control structures
     definePrimitive(datum.Primitive('if', _if));
     definePrimitive(datum.Primitive('while', _notSupportedError));
+    definePrimitive(datum.Primitive('sequence', _sequence));
 
     //boolean operators
     definePrimitive(datum.Primitive('and', _and));
@@ -170,8 +175,11 @@ class PrimitiveEnvironment extends Environment {
   static _lambda(Environment e, args) {
     var fe = Environment(e);
     var body = args.cdr.car;
-    for (args = args.car; args != datum.Null.instance; args = args.tail) {
-      var symbol = eval(args.car, e);
+    for (var arg = args.car; arg != datum.Null.instance; arg = arg.tail) {
+      var symbol = arg.car;
+      if (symbol is! datum.Symbol) {
+        throw ArgumentError('lambda formal argument should be a symbol');
+      }
       fe.define(symbol, datum.Null.instance);
     }
 
@@ -180,6 +188,31 @@ class PrimitiveEnvironment extends Environment {
 
   static _quote(Environment e, args) {
     return args.car;
+  }
+
+  static _eval(Environment e, args) {
+    return eval(eval(args.car, e), e);
+  }
+
+  static _apply(Environment e, args) {
+    var closure = eval(args.car, e);
+    var arguments = eval(args.cdr.car, e);
+    return apply(closure, arguments, e);
+  }
+
+  static _let(Environment e, args) {
+    var body = args.cdr.car;
+    for (var bindings = args.car;
+        bindings != datum.Null.instance;
+        bindings = bindings.cdr) {
+      var symbol = bindings.car.car;
+      if (symbol is! datum.Symbol) {
+        throw ArgumentError('a symbol is required as lhs of a let binding');
+      }
+      var value = eval(bindings.car.cdr.car, e);
+      e.define(symbol, value);
+    }
+    return eval(body, e);
   }
 
   static _set(Environment e, args) {
@@ -207,6 +240,14 @@ class PrimitiveEnvironment extends Environment {
     }
     if (args.tail.tail == null) return datum.Null.instance;
     return eval(args.tail.tail.head, e);
+  }
+
+  static _sequence(Environment e, args) {
+    datum.Datum result = datum.Null.instance;
+    for (var exp = args; exp != datum.Null.instance; exp = exp.cdr) {
+      result = eval(exp.car, e);
+    }
+    return result;
   }
 
   static _and(Environment e, args) {
@@ -258,7 +299,7 @@ class PrimitiveEnvironment extends Environment {
     if (args.tail == datum.Null) {
       return datum.Number.fromDart(-value);
     }
-    for (args = args.tail; args != null; args = args.tail) {
+    for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value -= eval(args.head, e).value;
     }
     return datum.Number.fromDart(value);
@@ -266,7 +307,7 @@ class PrimitiveEnvironment extends Environment {
 
   static _multiply(Environment e, args) {
     var value = eval(args.head, e).value;
-    for (args = args.tail; args != null; args = args.tail) {
+    for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value *= eval(args.head, e).value;
     }
     return datum.Number.fromDart(value);
@@ -274,7 +315,7 @@ class PrimitiveEnvironment extends Environment {
 
   static _divide(Environment e, args) {
     var value = eval(args.head, e).value;
-    for (args = args.tail; args != null; args = args.tail) {
+    for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value /= eval(args.head, e).value;
     }
     return datum.Number.fromDart(value);
@@ -282,7 +323,7 @@ class PrimitiveEnvironment extends Environment {
 
   static _modulo(Environment e, args) {
     var value = eval(args.head, e).value;
-    for (args = args.tail; args != null; args = args.tail) {
+    for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value %= eval(args.head, e).value;
     }
     return datum.Number.fromDart(value);

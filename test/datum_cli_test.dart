@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:datum_cli/datum_cli.dart';
 import 'package:datum_cli/src/domains/Environment.dart';
 import 'package:test/test.dart';
@@ -77,7 +79,7 @@ void main() {
     identical(b.name, d.name);
   });
 
-  var primitives = PrimitiveEnvironment(null);
+  var primitives = PrimitiveEnvironment(null).create();
   test('eval add', () {
     var exp = reader('(+ 1 2)');
     var result = eval(exp, primitives);
@@ -87,7 +89,7 @@ void main() {
   });
 
   test('eval lambda', () {
-    var exp = reader('(lambda ((quote x) (quote y)) (+ x y))');
+    var exp = reader('(lambda (x y) (+ x y))');
     var closure = eval(exp, primitives);
     expect(closure, isA<datum.Closure>());
     expect(closure.environment.symbols.length, 2);
@@ -96,23 +98,23 @@ void main() {
     closure = eval(exp, primitives);
     expect(closure.environment.symbols.length, 0);
 
-    exp = reader('(lambda ((quote x)) (+ x y))');
+    exp = reader('(lambda (x) (+ x y))');
     closure = eval(exp, primitives);
     expect(closure.environment.symbols.length, 1);
   });
 
   test('eval lambda application', () {
-    var exp = reader('((lambda ((quote x) (quote y)) (+ x y)) 2 3)');
+    var exp = reader('((lambda (x y) (+ x y)) 2 3)');
     var res = eval(exp, primitives);
     expect(res.value, 5);
   });
 
   test("eval define", () {
-    var exp = reader('((define (false? (quote a)) (= a false)) true)');
+    var exp = reader('((define (false? a) (= a false)) true)');
     var res = eval(exp, primitives.create());
     expect(res, datum.Boolean.dFalse);
 
-    exp = reader('((define (false? (quote a)) (= a false)) (false? true))');
+    exp = reader('((define (false? a) (= a false)) (false? true))');
     res = evalList(exp, primitives.create());
     expect(res.cdr.car, datum.Boolean.dFalse);
 
@@ -121,8 +123,59 @@ void main() {
     expect(res.value, 2);
   });
 
+  test('eval define 1', () {
+    var exp = reader('''(
+      (define reverse-subtract 
+        (lambda (x y) (- y x)))
+      (reverse-subtract 7 10)
+    )''');
+    var res = evalList(exp, primitives).cdr.car;
+    expect(printer(res), '(3)');
+  });
+
   test('eval print', () {
     var exp = reader('(print "hello world from datum!")');
     identical(eval(exp, primitives), datum.Null.instance);
+  });
+
+  test('eval let', () {
+    var exp = reader('''(
+      let ((x 2) (y 3))
+        (* x y)
+    )''');
+    var res = eval(exp, primitives);
+    expect(printer(res), '(6)');
+  });
+
+  rep(exp) {
+    var reader = DatumReader().parseString;
+    return printer(eval(reader(exp), primitives));
+  }
+
+  test('eval sequence', () {
+    var res = rep('''(sequence 
+      (define x 5)
+      (+ x 1)
+    )''');
+    expect(res, '(6)');
+  });
+
+  test('eval set', () {
+    var res = rep('''(sequence 
+      (define x 5)
+      (set! x (+ x 1))
+      x
+    )''');
+    expect(res, '(6)');
+  });
+
+  test('eval eval 0', () {
+    var res = rep(''' (eval (quote (+ 1 2))) ''');
+    expect(res, '(3)');
+  });
+
+  test('eval apply', () {
+    var res = rep(''' (apply + (quote (1 2 3))) ''');
+    expect(res, '(6)');
   });
 }
