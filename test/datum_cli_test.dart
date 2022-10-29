@@ -178,4 +178,88 @@ void main() {
     var res = rep(''' (apply + (quote (1 2 3))) ''');
     expect(res, '(6)');
   });
+
+  test('eval letrec is-even', () {
+    var res = rep(''' 
+    (letrec ((is-even? (lambda (n)
+                       (if (= 0 n) 
+                            true
+                           (is-odd? (- n 1)))))
+           (is-odd? (lambda (n)
+                      (if (= 0 n) 
+                            false
+                           (is-even? (- n 1))))))
+    (is-odd? 3))
+    ''');
+    expect(res, '(true)');
+  });
+
+  test('letrec x<--y', () {
+    var res = rep(''' 
+    (letrec ((x 1) (y (+ x 1))) (cons x y))
+    ''');
+    expect(res, '(1 2)');
+  });
+
+  test('letrec y --> x', () {
+    var res = rep('''
+    (letrec ((y (+ x 1)) (x 1)) (cons x y))
+    ''');
+    expect(res, '(1 2)');
+  });
+
+  test('null?', () {
+    expect(rep('(null? ())'), '(true)');
+    expect(rep('(null? (quote ()))'), '(true)');
+    expect(rep("(null? true)"), '(false)');
+    expect(rep('(null? 2)'), '(false)');
+    expect(rep('(null? (+ 1 2))'), '(false)');
+  });
+
+  test('boolean?', () {
+    expect(rep('(boolean? true)'), '(true)');
+    expect(rep('(boolean? false)'), '(true)');
+    expect(rep('(boolean? 2)'), '(false)');
+    expect(rep('(boolean? (+ 1 2))'), '(false)');
+    expect(rep('(boolean? (quote ()))'), '(false)');
+  });
+
+  test('char?', () {
+    expect(rep('(char? #\\c)'), '(true)');
+    expect(rep('(char? 23)'), '(false)');
+    expect(rep('(char? true)'), '(false)');
+  });
+  test('number?', () {
+    expect(rep('(number? 23)'), '(true)');
+    expect(rep('(number? 23.02)'), '(true)');
+    expect(rep('(number? (quote a))'), '(false)');
+    expect(rep('(number? "23")'), '(false)');
+    expect(rep('(number? true)'), '(false)');
+  });
+  test('symbol?', () {
+    expect(rep('(symbol? (quote foo))'), '(true)');
+    expect(rep('(symbol? (car (quote (a b))))'), '(true)');
+    expect(rep('(symbol? (quote nil))'), '(true)');
+    expect(rep('(symbol? (quote |toxo|))'), '(true)');
+    expect(rep('(symbol? (quote ()))'), '(false)');
+    expect(rep('(symbol? true)'), '(false)');
+  });
+  test('string?', () {
+    expect(rep('(string? "ab")'), '(true)');
+    expect(rep('(string? (quote ab))'), '(false)');
+    expect(rep('(string? true)'), '(false)');
+    expect(rep('(string? #\\v)'), '(false)');
+  });
+  test('pair?', () {
+    expect(rep('(pair? (quote (a . b)))'), '(true)');
+    expect(rep('(pair? (quote (a b c)))'), '(true)');
+    expect(rep('(pair? (quote ()))'), '(false)');
+    expect(rep('(pair? 23)'), '(false)');
+  });
+  test('procedure?', () {
+    expect(rep('(procedure? car)'), '(true)');
+    expect(rep('(procedure? (lambda (x) (* x x)))'), '(true)');
+    expect(rep('(procedure? (quote car))'), '(false)');
+    expect(rep('(procedure? 23)'), '(false)');
+  });
 }

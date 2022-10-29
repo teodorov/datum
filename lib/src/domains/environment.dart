@@ -86,7 +86,7 @@ apply(closure, arguments, env) {
     var symI = sym.iterator;
     var args = arguments;
     while (symI.moveNext() && args != datum.Null.instance) {
-      frame[symI.current] = args.car;
+      frame[symI.current] = eval(args.car, env);
       args = args.tail;
     }
     //eval the body in the frame context
@@ -119,6 +119,7 @@ class PrimitiveEnvironment extends Environment {
     definePrimitive(datum.Primitive('eval', _eval));
     definePrimitive(datum.Primitive('apply', _apply));
     definePrimitive(datum.Primitive('let', _let));
+    definePrimitive(datum.Primitive('letrec', _letrec));
     definePrimitive(datum.Primitive('set!', _set)); //assignment
     definePrimitive(datum.Primitive('print', _print));
 
@@ -153,6 +154,16 @@ class PrimitiveEnvironment extends Environment {
     definePrimitive(datum.Primitive('car!', _carSet));
     definePrimitive(datum.Primitive('cdr', _cdr));
     definePrimitive(datum.Primitive('cdr!', _cdrSet));
+
+    //primitive predicates
+    definePrimitive(datum.Primitive('null?', _isNull));
+    definePrimitive(datum.Primitive('boolean?', _isBoolean));
+    definePrimitive(datum.Primitive('char?', _isChar));
+    definePrimitive(datum.Primitive('number?', _isNumber));
+    definePrimitive(datum.Primitive('symbol?', _isSymbol));
+    definePrimitive(datum.Primitive('string?', _isString));
+    definePrimitive(datum.Primitive('pair?', _isPair));
+    definePrimitive(datum.Primitive('procedure?', _isProcedure));
   }
   static _notSupportedError(Environment e, args) {
     throw ArgumentError('${args.toString()} not supported yet!');
@@ -201,6 +212,7 @@ class PrimitiveEnvironment extends Environment {
   }
 
   static _let(Environment e, args) {
+    Environment scope = e.create();
     var body = args.cdr.car;
     for (var bindings = args.car;
         bindings != datum.Null.instance;
@@ -210,9 +222,34 @@ class PrimitiveEnvironment extends Environment {
         throw ArgumentError('a symbol is required as lhs of a let binding');
       }
       var value = eval(bindings.car.cdr.car, e);
-      e.define(symbol, value);
+      scope.define(symbol, value);
     }
-    return eval(body, e);
+    return eval(body, scope);
+  }
+
+  /// https://www.cs.tufts.edu/comp/150VM/modules/archive/kent-dybvig/letrec.pdf
+  /// https://legacy.cs.indiana.edu/~dyb/pubs/letrec-reloaded.pdf
+  static _letrec(Environment e, args) {
+    Environment scope = e.create();
+    for (var bindings = args.car;
+        bindings != datum.Null.instance;
+        bindings = bindings.cdr) {
+      var symbol = bindings.car.car;
+      if (symbol is! datum.Symbol) {
+        throw ArgumentError('a symbol is required as lhs of a letrec binding');
+      }
+      scope.define(symbol, datum.Null.instance);
+    }
+
+    for (var bindings = args.car;
+        bindings != datum.Null.instance;
+        bindings = bindings.cdr) {
+      var symbol = bindings.car.car;
+      var value = eval(bindings.car.cdr.car, scope);
+      scope[symbol] = value;
+    }
+
+    return eval(args.cdr.car, scope);
   }
 
   static _set(Environment e, args) {
@@ -234,11 +271,11 @@ class PrimitiveEnvironment extends Environment {
     if (condition is! datum.Boolean) {
       throw ArgumentError('if call with non-boolean condition');
     }
-    if (args.tail == null) return datum.Null.instance;
+    if (args.tail == datum.Null.instance) return datum.Null.instance;
     if (condition == datum.Boolean.dTrue) {
       return eval(args.tail.head, e);
     }
-    if (args.tail.tail == null) return datum.Null.instance;
+    if (args.tail.tail == datum.Null.instance) return datum.Null.instance;
     return eval(args.tail.tail.head, e);
   }
 
@@ -395,5 +432,46 @@ class PrimitiveEnvironment extends Environment {
       cons.cdr = eval(args.tail.head, e);
     }
     return cons;
+  }
+
+  static _isNull(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand == datum.Null.instance);
+  }
+
+  static _isBoolean(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.Boolean);
+  }
+
+  static _isChar(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.Character);
+  }
+
+  static _isNumber(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.Number);
+  }
+
+  static _isSymbol(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.Symbol);
+  }
+
+  static _isString(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.String);
+  }
+
+  static _isPair(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(operand is datum.Pair);
+  }
+
+  static _isProcedure(Environment e, args) {
+    var operand = eval(args.car, e);
+    return datum.Boolean.fromDart(
+        operand is datum.Closure || operand is datum.Primitive);
   }
 }

@@ -8,4 +8,12 @@
     
 
     
+(letrec ((is-even? (lambda (n)
+                       (if (= 0 n)
+                           (is-odd? (- n 1)))))
+           (is-odd? (lambda (n)
+                      (if (= 0 n)
+                           (is-even? (- n 1))))))
+    (is-odd? 11))
 
+(letrec ((x 1) (y (+ x 1))) (list x y))
