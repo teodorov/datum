@@ -1,5 +1,6 @@
-import '../model/datum_ast.dart' as datum;
+import 'package:datum_cli/src/model/datum_ast.dart' as datum;
 import 'environment.dart';
+import 'evaluator.dart';
 
 class PrimitiveEnvironment extends Environment {
   PrimitiveEnvironment(super.parent) {

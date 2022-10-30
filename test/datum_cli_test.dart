@@ -1,6 +1,6 @@
 import 'package:datum_cli/datum_cli.dart';
-import 'package:datum_cli/src/domains/environment.dart';
 import 'package:datum_cli/src/domains/primitives.dart';
+import 'package:datum_cli/src/domains/evaluator.dart';
 import 'package:test/test.dart';
 import 'package:datum_cli/src/model/datum_ast.dart' as datum;
 

@@ -2,7 +2,7 @@
 
 import 'dart:collection';
 
-import '../model/datum_ast.dart' as datum;
+import 'package:datum_cli/src/model/datum_ast.dart' as datum;
 
 class Environment extends datum.Datum {
   // ignore: prefer_collection_literals
@@ -60,55 +60,4 @@ class Environment extends datum.Datum {
   accept(visitor) {
     return visitor.visitEnvironment(this);
   }
-}
-
-eval(exp, Environment env) {
-  //symbols are looked-up and replaced by their value
-  if (exp is datum.Symbol) {
-    return env[exp];
-  }
-  if (exp is datum.Pair) {
-    var closure = eval(exp.car, env);
-    return apply(closure, exp.cdr, env);
-  }
-  return exp;
-}
-
-//lambda application - function call
-apply(closure, arguments, env) {
-  if (closure is datum.Primitive) {
-    return applyPrimitive(closure.primitive, arguments, env);
-  }
-  //if the closure is a Pair with the car 'closure
-  if (closure is datum.Closure) {
-    var body = closure.code;
-    var frame = closure.environment.clone();
-
-    //pair up -- set the formals to the actuals and create the frame
-    Iterable<datum.Symbol> sym = frame.symbols;
-    var symI = sym.iterator;
-    var args = arguments;
-    while (symI.moveNext() && args != datum.Null.instance) {
-      frame[symI.current] = eval(args.car, env);
-      args = args.tail;
-    }
-    //eval the body in the frame context
-    return eval(body, frame);
-  }
-  throw ArgumentError('apply invoked with non-closure target');
-}
-
-applyPrimitive(closure, arguments, env) {
-  return closure(env, arguments);
-}
-
-evalList(args, env) {
-  if (args == datum.Null.instance) {
-    return args;
-  }
-  return datum.Pair(eval(args.car, env), evalList(args.cdr, env));
-}
-
-String printer(datum.Datum e) {
-  return e.toString();
 }
