@@ -63,7 +63,7 @@ class ANTLR4Tree2Datum extends DatumBaseListener {
 
   @override
   void exitCharacter(CharacterContext ctx) {
-    map[ctx] = datum.Character(ctx.text);
+    map[ctx] = datum.Character(ctx.character!.text!);
   }
 
   @override

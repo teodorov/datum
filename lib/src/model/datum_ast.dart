@@ -28,7 +28,10 @@ abstract class Datum {
 
   @core.override
   core.String toString() {
-    return '(${accept(DatumPrinter())})';
+    if (this is Pair) {
+      return '(${accept(DatumPrinter())})';
+    }
+    return '${accept(DatumPrinter())}';
   }
 }
 
@@ -220,7 +223,7 @@ class DatumPrinter extends DatumVisitor {
 
   @core.override
   visitCharacter(Character datum) {
-    return '(#\\${datum.literal})';
+    return '#\\${datum.literal}';
   }
 
   @core.override

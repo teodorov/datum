@@ -10,7 +10,7 @@ datum
 leaf_datum
     : BOOL                      #Boolean
     | NUMBER                    #Number
-    | CHARACTER                 #Character
+    | '#\\' (character=.)       #Character
     | STRING                    #String
     | SYMBOL                    #Symbol //an identifier
     ;
@@ -56,7 +56,7 @@ DASH : '#';
 EQUALS : '=';
 
 
-CHARACTER   : '#\\' .;
+//CHARACTER   : '#\\' .;
 
 NATURAL     : DIGIT+;
 

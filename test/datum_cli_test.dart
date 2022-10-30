@@ -28,11 +28,11 @@ void main() {
 
   test('simp parse definition', () {
     var datum = reader("[titi]= (+ 3 2)");
-    expect(datum.toString(), '([titi]= (+ 3 2))');
+    expect(datum.toString(), '[titi]= (+ 3 2)');
   });
 
   test('symbol', () {
-    expect(reader('symbol').toString(), '(symbol)');
+    expect(reader('symbol').toString(), 'symbol');
     var exp = reader('(symbol1 symbol1)');
     var s1 = exp.car;
     var s2 = exp.cdr.car;
@@ -41,15 +41,19 @@ void main() {
 
   test('boolean', () {
     identical(reader('true'), datum.Boolean.dTrue);
-    expect(reader('true').toString(), '(true)');
+    expect(reader('true').toString(), 'true');
     expect(reader('(true)').toString(), '(true)');
     identical(reader('false'), datum.Boolean.dFalse);
-    expect(reader('false').toString(), '(false)');
+    expect(reader('false').toString(), 'false');
     expect(reader('(false)').toString(), '(false)');
   });
 
+  test('character', () {
+    expect(reader('#\\c').toString(), '#\\c');
+  });
+
   test('number', () {
-    expect(reader('23').toString(), '(23)');
+    expect(reader('23').toString(), '23');
     expect(reader('23').value, 23);
     expect(reader('23.43').value, 23.43);
     expect(reader('+23.43').value, 23.43);
@@ -130,7 +134,7 @@ void main() {
       (reverse-subtract 7 10)
     )''');
     var res = evalList(exp, primitives).cdr.car;
-    expect(printer(res), '(3)');
+    expect(printer(res), '3');
   });
 
   test('eval print', () {
@@ -144,7 +148,7 @@ void main() {
         (* x y)
     )''');
     var res = eval(exp, primitives);
-    expect(printer(res), '(6)');
+    expect(printer(res), '6');
   });
 
   rep(exp) {
@@ -157,7 +161,7 @@ void main() {
       (define x 5)
       (+ x 1)
     )''');
-    expect(res, '(6)');
+    expect(res, '6');
   });
 
   test('eval set', () {
@@ -166,17 +170,17 @@ void main() {
       (set! x (+ x 1))
       x
     )''');
-    expect(res, '(6)');
+    expect(res, '6');
   });
 
   test('eval eval 0', () {
     var res = rep(''' (eval (quote (+ 1 2))) ''');
-    expect(res, '(3)');
+    expect(res, '3');
   });
 
   test('eval apply', () {
     var res = rep(''' (apply + (quote (1 2 3))) ''');
-    expect(res, '(6)');
+    expect(res, '6');
   });
 
   test('eval letrec is-even', () {
@@ -191,7 +195,7 @@ void main() {
                            (is-even? (- n 1))))))
     (is-odd? 3))
     ''');
-    expect(res, '(true)');
+    expect(res, 'true');
   });
 
   test('letrec x<--y', () {
@@ -202,64 +206,91 @@ void main() {
   });
 
   test('letrec y --> x', () {
-    var res = rep('''
+    expect(rep('''
     (letrec ((y (+ x 1)) (x 1)) (cons x y))
-    ''');
-    expect(res, '(1 2)');
+    '''), throwsA(isNoSuchMethodError));
   });
 
   test('null?', () {
-    expect(rep('(null? ())'), '(true)');
-    expect(rep('(null? (quote ()))'), '(true)');
-    expect(rep("(null? true)"), '(false)');
-    expect(rep('(null? 2)'), '(false)');
-    expect(rep('(null? (+ 1 2))'), '(false)');
+    expect(rep('(null? ())'), 'true');
+    expect(rep('(null? (quote ()))'), 'true');
+    expect(rep("(null? true)"), 'false');
+    expect(rep('(null? 2)'), 'false');
+    expect(rep('(null? (+ 1 2))'), 'false');
   });
 
   test('boolean?', () {
-    expect(rep('(boolean? true)'), '(true)');
-    expect(rep('(boolean? false)'), '(true)');
-    expect(rep('(boolean? 2)'), '(false)');
-    expect(rep('(boolean? (+ 1 2))'), '(false)');
-    expect(rep('(boolean? (quote ()))'), '(false)');
+    expect(rep('(boolean? true)'), 'true');
+    expect(rep('(boolean? false)'), 'true');
+    expect(rep('(boolean? 2)'), 'false');
+    expect(rep('(boolean? (+ 1 2))'), 'false');
+    expect(rep('(boolean? (quote ()))'), 'false');
   });
 
   test('char?', () {
-    expect(rep('(char? #\\c)'), '(true)');
-    expect(rep('(char? 23)'), '(false)');
-    expect(rep('(char? true)'), '(false)');
+    expect(rep('(char? #\\c)'), 'true');
+    expect(rep('(char? 23)'), 'false');
+    expect(rep('(char? true)'), 'false');
   });
   test('number?', () {
-    expect(rep('(number? 23)'), '(true)');
-    expect(rep('(number? 23.02)'), '(true)');
-    expect(rep('(number? (quote a))'), '(false)');
-    expect(rep('(number? "23")'), '(false)');
-    expect(rep('(number? true)'), '(false)');
+    expect(rep('(number? 23)'), 'true');
+    expect(rep('(number? 23.02)'), 'true');
+    expect(rep('(number? (quote a))'), 'false');
+    expect(rep('(number? "23")'), 'false');
+    expect(rep('(number? true)'), 'false');
   });
   test('symbol?', () {
-    expect(rep('(symbol? (quote foo))'), '(true)');
-    expect(rep('(symbol? (car (quote (a b))))'), '(true)');
-    expect(rep('(symbol? (quote nil))'), '(true)');
-    expect(rep('(symbol? (quote |toxo|))'), '(true)');
-    expect(rep('(symbol? (quote ()))'), '(false)');
-    expect(rep('(symbol? true)'), '(false)');
+    expect(rep('(symbol? (quote foo))'), 'true');
+    expect(rep('(symbol? (car (quote (a b))))'), 'true');
+    expect(rep('(symbol? (quote nil))'), 'true');
+    expect(rep('(symbol? (quote |toxo|))'), 'true');
+    expect(rep('(symbol? (quote ()))'), 'false');
+    expect(rep('(symbol? true)'), 'false');
   });
   test('string?', () {
-    expect(rep('(string? "ab")'), '(true)');
-    expect(rep('(string? (quote ab))'), '(false)');
-    expect(rep('(string? true)'), '(false)');
-    expect(rep('(string? #\\v)'), '(false)');
+    expect(rep('(string? "ab")'), 'true');
+    expect(rep('(string? (quote ab))'), 'false');
+    expect(rep('(string? true)'), 'false');
+    expect(rep('(string? #\\v)'), 'false');
   });
   test('pair?', () {
-    expect(rep('(pair? (quote (a . b)))'), '(true)');
-    expect(rep('(pair? (quote (a b c)))'), '(true)');
-    expect(rep('(pair? (quote ()))'), '(false)');
-    expect(rep('(pair? 23)'), '(false)');
+    expect(rep('(pair? (quote (a . b)))'), 'true');
+    expect(rep('(pair? (quote (a b c)))'), 'true');
+    expect(rep('(pair? (quote ()))'), 'false');
+    expect(rep('(pair? 23)'), 'false');
   });
   test('procedure?', () {
-    expect(rep('(procedure? car)'), '(true)');
-    expect(rep('(procedure? (lambda (x) (* x x)))'), '(true)');
-    expect(rep('(procedure? (quote car))'), '(false)');
-    expect(rep('(procedure? 23)'), '(false)');
+    expect(rep('(procedure? car)'), 'true');
+    expect(rep('(procedure? (lambda (x) (* x x)))'), 'true');
+    expect(rep('(procedure? (quote car))'), 'false');
+    expect(rep('(procedure? 23)'), 'false');
+  });
+
+  test('factorial', () {
+    expect(rep('''
+    (sequence
+    (define (factorial n)
+      (if (<= n 1) 
+        1
+        (* n (factorial (- n 1)))
+      )
+    )
+    (factorial 20)
+    )
+'''), "2432902008176640000");
+  });
+
+  test('fibonacci', () {
+    expect(rep('''
+(sequence
+(define (fib n)
+  (if (= n 0)
+      0
+      (if (= n 1)
+          1
+          (+ (fib (- n 1))
+             (fib (- n 2))))))
+(fib 10))
+'''), "55");
   });
 }
