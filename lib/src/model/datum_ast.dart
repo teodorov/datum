@@ -1,6 +1,6 @@
 import 'dart:core' as core;
 
-import 'package:datum_cli/src/domains/Environment.dart';
+import 'package:datum_cli/src/domains/environment.dart';
 
 abstract class DatumVisitor {
   visitDatum(Datum datum);
