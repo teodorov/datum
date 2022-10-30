@@ -1,8 +1,11 @@
+// ignore_for_file: file_names
+
 import 'dart:collection';
 
 import '../model/datum_ast.dart' as datum;
 
 class Environment extends datum.Datum {
+  // ignore: prefer_collection_literals
   Environment([this._parent]) : _bindings = LinkedHashMap();
 
   final Environment? _parent;
