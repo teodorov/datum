@@ -1,24 +1,25 @@
 import 'dart:core' as core;
 
 import 'package:datum_cli/src/domains/environment.dart';
+import '../evaluation/printer.dart';
 
 abstract class DatumVisitor {
-  visitDatum(Datum datum);
-  visitNull(Null datum);
-  visitPair(Pair datum);
-  visitDottedPair(DottedPair datum);
-  visitProperList(ProperList datum);
-  visitDefinition(Definition datum);
-  visitCommented(Commented datum);
-  visitLiteral(Literal datum);
-  visitBoolean(Boolean datum);
-  visitNumber(Number datum);
-  visitCharacter(Character datum);
-  visitString(String datum);
-  visitSymbol(Symbol datum);
-  visitPrimitive(Symbol datum);
-  visitClosure(Closure datum);
-  visitEnvironment(Environment datum);
+  visitDatum(Datum item);
+  visitNull(Null item);
+  visitPair(Pair item);
+  visitDottedPair(DottedPair item);
+  visitProperList(ProperList item);
+  visitDefinition(Definition item);
+  visitCommented(Commented item);
+  visitLiteral(Literal item);
+  visitBoolean(Boolean item);
+  visitNumber(Number item);
+  visitCharacter(Character item);
+  visitString(String item);
+  visitSymbol(Symbol item);
+  visitPrimitive(Primitive item);
+  visitClosure(Closure item);
+  visitEnvironment(Environment item);
 }
 
 abstract class Datum {
@@ -212,108 +213,5 @@ class Primitive extends Datum {
   @core.override
   accept(visitor) {
     return visitor.visitPrimitive(this);
-  }
-}
-
-class DatumPrinter extends DatumVisitor {
-  @core.override
-  visitBoolean(Boolean datum) {
-    return datum.literal;
-  }
-
-  @core.override
-  visitCharacter(Character datum) {
-    return '#\\${datum.literal}';
-  }
-
-  @core.override
-  visitCommented(Commented datum) {
-    return '#; ${datum.datum.accept(this)}';
-  }
-
-  @core.override
-  visitDatum(Datum datum) {
-    throw core.UnimplementedError();
-  }
-
-  @core.override
-  visitDefinition(Definition datum) {
-    return '[${datum.name.accept(this)}]= (${datum.datum.accept(this)})';
-  }
-
-  @core.override
-  visitNull(Null datum) {
-    return '()';
-  }
-
-  @core.override
-  visitPair(Pair datum) {
-    core.String head = datum.head is Pair
-        ? '(${datum.head.accept(this)})'
-        : datum.head.accept(this);
-
-    return datum.tail == Null.instance
-        ? head
-        : '$head ${datum.tail.accept(this)}';
-  }
-
-  // @core.override
-  // visitPair(Pair datum) {
-  //   core.String head = datum.head.accept(this);
-  //   core.String tail = datum.tail == null ? '()' : datum.tail.accept(this);
-
-  //   return '($head . $tail)';
-  // }
-
-  @core.override
-  visitDottedPair(DottedPair datum) {
-    core.String prefix = datum.prefix
-        .map((e) => e.accept(this))
-        .fold("", (previousValue, element) => '$previousValue $element');
-    return '($prefix . ${datum.tail!.accept(this)})';
-  }
-
-  @core.override
-  visitLiteral(Literal datum) {
-    throw core.UnimplementedError();
-  }
-
-  @core.override
-  visitNumber(Number datum) {
-    return datum.literal;
-  }
-
-  @core.override
-  visitProperList(ProperList datum) {
-    var contents = datum.items.map((e) => e.accept(this)).fold(
-        '',
-        (previousValue, element) =>
-            previousValue == '' ? element : '$previousValue $element');
-    return '($contents)';
-  }
-
-  @core.override
-  visitString(String datum) {
-    return '"${datum.literal}"';
-  }
-
-  @core.override
-  visitSymbol(Symbol datum) {
-    return datum.literal;
-  }
-
-  @core.override
-  visitPrimitive(Symbol datum) {
-    return datum.literal;
-  }
-
-  @core.override
-  visitClosure(Closure datum) {
-    return '(closure ${datum.code.accept(this)} ${datum.environment.accept(this)})';
-  }
-
-  @core.override
-  visitEnvironment(Environment datum) {
-    return '(environment (${datum.entries.fold('', (previousValue, element) => '$previousValue (${element.key} . ${element.value.accept(this)})')}))';
   }
 }

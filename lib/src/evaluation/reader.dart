@@ -2,7 +2,7 @@ import 'package:antlr4/antlr4.dart';
 import 'package:datum_cli/src/grammar/DatumBaseListener.dart';
 import 'package:datum_cli/src/grammar/DatumLexer.dart';
 import 'package:datum_cli/src/grammar/DatumParser.dart';
-import 'package:datum_cli/src/model/datum_ast.dart' as datum;
+import 'package:datum_cli/src/model/datum_model.dart' as datum;
 
 class DatumReader extends Antlr4DatumReader {
   @override

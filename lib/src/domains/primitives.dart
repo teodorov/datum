@@ -1,6 +1,6 @@
-import 'package:datum_cli/src/model/datum_ast.dart' as datum;
+import 'package:datum_cli/src/model/datum_model.dart' as datum;
 import 'environment.dart';
-import 'evaluator.dart';
+import '../evaluation/evaluator.dart';
 
 class PrimitiveEnvironment extends Environment {
   PrimitiveEnvironment(super.parent) {
@@ -16,6 +16,7 @@ class PrimitiveEnvironment extends Environment {
     definePrimitive(datum.Primitive('print', _print));
 
     //control structures
+    definePrimitive(datum.Primitive('cond', _cond));
     definePrimitive(datum.Primitive('if', _if));
     definePrimitive(datum.Primitive('while', _notSupportedError));
     definePrimitive(datum.Primitive('sequence', _sequence));
@@ -156,6 +157,23 @@ class PrimitiveEnvironment extends Environment {
     }
     print(data);
     return datum.Null.instance;
+  }
+
+  static _cond(Environment e, args) {
+    if (args == datum.Null.instance) {
+      return datum.Null.instance;
+    }
+    //(else (exp ()))
+    if (args.car.car == datum.Symbol('else')) {
+      return eval(args.car.cdr.car, e);
+    }
+    //((condition ()) (exp ())) --> condition is false
+    // fall through to the next case
+    if (eval(args.car.car, e) == datum.Boolean.dFalse) {
+      return eval(args.cdr, e);
+    }
+    //((condition ()) (exp ())) --> condition is true
+    return eval(args.car.cdr.car, e);
   }
 
   static _if(Environment e, args) {

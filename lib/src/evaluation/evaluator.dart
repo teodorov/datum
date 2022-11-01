@@ -1,5 +1,5 @@
-import 'environment.dart';
-import 'package:datum_cli/src/model/datum_ast.dart' as datum;
+import '../domains/environment.dart';
+import 'package:datum_cli/src/model/datum_model.dart' as datum;
 
 eval(exp, Environment env) {
   //symbols are looked-up and replaced by their value
@@ -42,8 +42,4 @@ evalList(args, env) {
     return args;
   }
   return datum.Pair(eval(args.car, env), evalList(args.cdr, env));
-}
-
-String printer(datum.Datum e) {
-  return e.toString();
 }

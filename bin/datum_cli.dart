@@ -1,4 +1,4 @@
-import 'package:datum_cli/datum_cli.dart';
+import 'package:datum_cli/src/evaluation/reader.dart';
 
 void main(List<String> arguments) {
   Antlr4DatumReader dr = Antlr4DatumReader();

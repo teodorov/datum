@@ -2,7 +2,7 @@
 
 import 'dart:collection';
 
-import 'package:datum_cli/src/model/datum_ast.dart' as datum;
+import 'package:datum_cli/src/model/datum_model.dart' as datum;
 
 class Environment extends datum.Datum {
   // ignore: prefer_collection_literals
