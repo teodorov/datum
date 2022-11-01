@@ -1,9 +1,9 @@
-import 'package:datum_cli/src/evaluation/reader.dart';
-import 'package:datum_cli/src/evaluation/printer.dart';
-import 'package:datum_cli/src/domains/primitives.dart';
-import 'package:datum_cli/src/evaluation/evaluator.dart';
+import 'package:datum/src/evaluation/reader.dart';
+import 'package:datum/src/evaluation/printer.dart';
+import 'package:datum/src/domains/primitives.dart';
+import 'package:datum/src/evaluation/evaluator.dart';
 import 'package:test/test.dart';
-import 'package:datum_cli/src/model/datum_model.dart' as datum;
+import 'package:datum/src/model/datum_model.dart' as datum;
 
 void main() {
   var rpl = Antlr4DatumReader().antlr4tree;

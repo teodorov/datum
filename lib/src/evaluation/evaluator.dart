@@ -1,5 +1,5 @@
-import '../domains/environment.dart';
-import 'package:datum_cli/src/model/datum_model.dart' as datum;
+import 'package:datum/src/domains/environment.dart';
+import 'package:datum/src/model/datum_model.dart' as datum;
 
 eval(exp, Environment env) {
   //symbols are looked-up and replaced by their value

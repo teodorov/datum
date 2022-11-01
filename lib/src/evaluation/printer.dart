@@ -1,5 +1,5 @@
-import '../model/datum_model.dart' as datum;
-import '../domains/environment.dart';
+import 'package:datum/src/model/datum_model.dart' as datum;
+import 'package:datum/src/domains/environment.dart';
 
 String printer(datum.Datum e) {
   return e.toString();
