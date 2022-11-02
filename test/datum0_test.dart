@@ -213,7 +213,6 @@ void main() {
     } catch (e) {
       expect(e, isNoSuchMethodError);
     }
-    ;
   });
 
   test('null?', () {

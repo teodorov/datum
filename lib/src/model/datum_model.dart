@@ -47,7 +47,7 @@ class Closure extends Datum {
   final core.List<Datum>
       formals; //Datum can be only Symbol and (optional argument) Pair where car is Symbol and cdr is initial expression
   final core.bool isVariadic;
-  final numberOfMandatoryArguments;
+  final core.int numberOfMandatoryArguments;
 
   @core.override
   accept(visitor) {

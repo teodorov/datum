@@ -86,7 +86,7 @@ class Evaluator extends datum.DatumVisitor {
     var closure = item.car.accept(this);
     //apply the primitive forms
     if (closure is datum.Primitive) {
-      return closure.primitive(item.cdr, peek());
+      return closure.primitive(item.cdr, peek(), this);
     }
     if (closure is! datum.Closure) {
       throw ArgumentError(
@@ -121,17 +121,61 @@ class Evaluator extends datum.DatumVisitor {
     return item.datum;
   }
 
-  apply(closure, arguments) {
+  apply(datum.Closure closure, arguments) {
+    var numberOfDirectArguments = closure.isVariadic
+        ? closure.formals.length - 1
+        : closure.formals.length;
     //create a frame
     var frame = closure.environment.create();
+    int i = 0;
     var args = arguments;
-    for (var i = 0; i < closure.formals.length; i++) {
-      frame.define(closure.formals[i], args.car.accept(this));
-      args = args.cdr;
+    for (args; args != datum.Null.instance; args = args.cdr) {
+      if (!closure.isVariadic && i >= closure.formals.length) {
+        throw ArgumentError(
+            "Too many arguments: expected ${closure.formals.length} but given more than $i arguments");
+      }
+      if (closure.isVariadic && i == numberOfDirectArguments) {
+        break;
+      }
+      var actual = args.car.accept(this);
+      datum.Symbol formal;
+      if (closure.formals[i] is datum.Symbol) {
+        //the argument is a mandatory argument
+        formal = closure.formals[i] as datum.Symbol;
+      } else {
+        //the argument is an optional argument, its car is a Symbol
+        formal = (closure.formals[i] as datum.Pair).car as datum.Symbol;
+      }
+      frame.define(formal, actual);
+      i++;
     }
+    if (i < closure.numberOfMandatoryArguments) {
+      throw ArgumentError(
+          "Not enough arguments: expected ${closure.numberOfMandatoryArguments} but given only $i arguments");
+    }
+    for (; i < numberOfDirectArguments; i++) {
+      datum.Symbol formal =
+          (closure.formals[i] as datum.Pair).car as datum.Symbol;
+      var defaultValue = (closure.formals[i] as datum.Pair).cdr!.accept(this);
+      frame.define(formal, defaultValue);
+    }
+
+    if (closure.isVariadic) {
+      datum.Symbol formal = closure.formals[i] as datum.Symbol;
+      datum.Datum actual = evalList(args);
+      frame.define(formal, actual);
+    }
+
     var body = closure.code;
     push(frame);
     return body.accept(this);
+  }
+
+  evalList(exp) {
+    if (exp == datum.Null.instance) {
+      return exp;
+    }
+    return datum.Pair(exp.car.accept(this), evalList(exp.cdr));
   }
 }
 

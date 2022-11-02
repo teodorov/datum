@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:datum/src/evaluation/reader.dart';
 import 'package:datum/src/evaluation/printer.dart';
 import 'package:datum/src/domains/primitives1.dart';
@@ -97,6 +95,15 @@ void main() {
   re(exp) {
     var reader = DatumReader().parseString;
     return eval(reader(exp), environment);
+  }
+
+  ree(exp, e) {
+    var reader = DatumReader().parseString;
+    return eval(reader(exp), e);
+  }
+
+  rep(exp) {
+    return printer(re(exp));
   }
 
   test('lambda no arguments', () {
@@ -241,34 +248,133 @@ void main() {
     }
   });
 
-  test('eval lambda application', () {
-    var exp = reader('((lambda (x y) (+ x y)) 2 3)');
-    var res = eval(exp, environment);
-    expect(res.value, 5);
+  test('lambda application', () {
+    expect(rep('((lambda (x y) (+ x y)) 2 3)'), '5');
+  });
+
+  test('apply not enough mandatory arguments', () {
+    try {
+      rep('((lambda (x y) (+ x y)) 2)');
+    } catch (e) {
+      expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          "Not enough arguments: expected 2 but given only 1 arguments");
+    }
+  });
+
+  test('apply too many mandatory arguments', () {
+    try {
+      rep('((lambda (x y) (+ x y)) 2 3 4)');
+    } catch (e) {
+      expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          "Too many arguments: expected 2 but given more than 2 arguments");
+    }
+  });
+
+  test('apply optional given', () {
+    expect(rep('((lambda (x (y 2)) (+ x y)) 2 3)'), '5');
+  });
+
+  test('apply optional default', () {
+    expect(rep('((lambda (x (y 2)) (+ x y)) 2)'), '4');
+  });
+
+  test('apply only optional default', () {
+    expect(rep('((lambda ((x 2) (y 2)) (+ x y)))'), '4');
+  });
+
+  test('apply optional mandatory missing', () {
+    try {
+      rep('((lambda (x (y 1)) (+ x y)))');
+    } catch (e) {
+      expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          "Not enough arguments: expected 1 but given only 0 arguments");
+    }
+  });
+
+  test('apply variadic only car', () {
+    expect(rep('((lambda x (car x)) 1 2 3)'), '1');
+  });
+
+  test('apply variadic only cdr', () {
+    expect(rep('((lambda x (cdr x)) 1 2 3)'), '(2 3)');
+  });
+
+  test('apply variadic only car quote', () {
+    expect(rep("((lambda x (car x)) '(1 2 3))"), '(1 2 3)');
+  });
+
+  test('apply variadic only cdr quote', () {
+    expect(rep("((lambda x (cdr x)) '(1 2 3))"), '()');
+  });
+
+  test('apply variadic mandatory rest missing', () {
+    expect(rep("((lambda (x . y) y) '(1 2 3))"), '()');
+  });
+
+  test('apply variadic mandatory rest present', () {
+    expect(rep("((lambda (x . y) y) '() '(1 2 3))"), '((1 2 3))');
+  });
+
+  test('apply variadic mandatory rest 123', () {
+    expect(rep("((lambda (x . y) y) 0 1 2 3)"), '(1 2 3)');
+  });
+
+  test('apply variadic optional rest 23', () {
+    expect(rep("((lambda (x (y 3) . z) z) 0 1 2 3)"), '(2 3)');
+  });
+
+  test('apply variadic optional no rest', () {
+    expect(rep("((lambda (x (y 3) . z) z) 0 1)"), '()');
+  });
+
+  test('apply variadic no optional no rest', () {
+    expect(rep("((lambda (x (y 3) . z) (cons z y)) 0)"), '(() 3)');
+  });
+
+  test('apply variadic no madatory no optional no rest', () {
+    expect(rep("((lambda ((y 3) . z) (cons z y)))"), '(() 3)');
+  });
+
+  test('apply variadic no madatory optional no rest', () {
+    expect(rep("((lambda ((y 3) . z) (cons z y)) 0)"), '(() 0)');
+  });
+
+  test('quote', () {
+    expect(rep("'(1 2 3)"), "(1 2 3)");
+  });
+
+  test('define sym', () {
+    expect(rep('(define x 2)'), '()');
+    expect(rep('x'), '2');
+  });
+
+  test('define sym', () {
+    expect(rep('(define x 2)'), '()');
+    expect(rep('x'), '2');
+    expect(rep('(define x 3)'), '()');
+    expect(rep('x'), '3');
+  });
+
+  test('define lam', () {
+    expect(rep('(define (id x) x)'), '()');
+    expect(rep('(id 3)'), '3');
+    expect(rep("(id '(1 2))"), '(1 2)');
   });
 
   test("eval define", () {
-    var exp = reader('((define (false? a) (= a false)) true)');
-    var res = eval(exp, environment.create());
-    expect(res, datum.Boolean.dFalse);
-
-    exp = reader('((define (false? a) (= a false)) (false? true))');
-    res = evalList(exp, environment.create());
-    expect(res.cdr.car, datum.Boolean.dFalse);
-
-    exp = reader('(define two 2)');
-    res = eval(exp, environment);
-    expect(res.value, 2);
+    re('(define (false? a) (= a false))');
+    expect(rep('(false? true)'), 'false');
   });
 
   test('eval define 1', () {
-    var exp = reader('''(
+    re('''
       (define reverse-subtract 
         (lambda (x y) (- y x)))
-      (reverse-subtract 7 10)
-    )''');
-    var res = evalList(exp, environment).cdr.car;
-    expect(printer(res), '3');
+    ''');
+    expect(rep('(reverse-subtract 7 10)'), '3');
   });
 
   test('eval print', () {
@@ -284,10 +390,6 @@ void main() {
     var res = eval(exp, environment);
     expect(printer(res), '6');
   });
-
-  rep(exp) {
-    return printer(re(exp));
-  }
 
   test('eval sequence', () {
     var res = rep('''(sequence 
@@ -339,9 +441,13 @@ void main() {
   });
 
   test('letrec y --> x', () {
-    expect(rep('''
+    try {
+      rep('''
     (letrec ((y (+ x 1)) (x 1)) (cons x y))
-    '''), throwsA(isNoSuchMethodError));
+    ''');
+    } catch (e) {
+      expect(e, isNoSuchMethodError);
+    }
   });
 
   test('null?', () {
