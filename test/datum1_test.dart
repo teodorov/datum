@@ -1,3 +1,4 @@
+import 'package:datum/src/domains/environment.dart';
 import 'package:datum/src/evaluation/reader.dart';
 import 'package:datum/src/evaluation/printer.dart';
 import 'package:datum/src/domains/primitives1.dart';
@@ -84,6 +85,20 @@ void main() {
   });
 
   var environment = PrimitiveEnvironment(null).create();
+
+  eval(expression, Environment environment) {
+    return expression.accept(Evaluator(environment));
+  }
+
+  re(exp) {
+    var reader = DatumReader().parseString;
+    return eval(reader(exp), environment);
+  }
+
+  rep(exp) {
+    return printer(re(exp));
+  }
+
   test('eval add', () {
     var exp = reader('(+ 1 2)');
     var result = eval(exp, environment);
@@ -91,20 +106,6 @@ void main() {
     exp = reader('(+ 1 2 3 4)');
     expect(eval(exp, environment).value, 10);
   });
-
-  re(exp) {
-    var reader = DatumReader().parseString;
-    return eval(reader(exp), environment);
-  }
-
-  ree(exp, e) {
-    var reader = DatumReader().parseString;
-    return eval(reader(exp), e);
-  }
-
-  rep(exp) {
-    return printer(re(exp));
-  }
 
   test('lambda no arguments', () {
     var closure = re('(lambda () (+ x y))');
@@ -474,7 +475,7 @@ void main() {
   test('number?', () {
     expect(rep('(number? 23)'), 'true');
     expect(rep('(number? 23.02)'), 'true');
-    expect(rep('(number? (quote a))'), 'false');
+    expect(rep("(number? (quote a))"), 'false');
     expect(rep('(number? "23")'), 'false');
     expect(rep('(number? true)'), 'false');
   });

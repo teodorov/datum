@@ -86,7 +86,8 @@ class Evaluator extends datum.DatumVisitor {
     var closure = item.car.accept(this);
     //apply the primitive forms
     if (closure is datum.Primitive) {
-      return closure.primitive(item.cdr, peek(), this);
+      // var arguments = evalList(item.cdr);
+      return closure.primitive(item.cdr, this);
     }
     if (closure is! datum.Closure) {
       throw ArgumentError(
@@ -137,7 +138,6 @@ class Evaluator extends datum.DatumVisitor {
       if (closure.isVariadic && i == numberOfDirectArguments) {
         break;
       }
-      var actual = args.car.accept(this);
       datum.Symbol formal;
       if (closure.formals[i] is datum.Symbol) {
         //the argument is a mandatory argument
@@ -146,6 +146,7 @@ class Evaluator extends datum.DatumVisitor {
         //the argument is an optional argument, its car is a Symbol
         formal = (closure.formals[i] as datum.Pair).car as datum.Symbol;
       }
+      var actual = args.car.accept(this);
       frame.define(formal, actual);
       i++;
     }
@@ -166,9 +167,10 @@ class Evaluator extends datum.DatumVisitor {
       frame.define(formal, actual);
     }
 
-    var body = closure.code;
     push(frame);
-    return body.accept(this);
+    var result = closure.code.accept(this);
+    pop();
+    return result;
   }
 
   evalList(exp) {
@@ -178,48 +180,3 @@ class Evaluator extends datum.DatumVisitor {
     return datum.Pair(exp.car.accept(this), evalList(exp.cdr));
   }
 }
-
-eval(expression, Environment environment) {
-  return expression.accept(Evaluator(environment));
-}
-
-evalList(arguments, environment) {
-  throw UnimplementedError("EvalList not implemented yet");
-}
-
-xapply(closure, arguments, env) {
-  throw UnimplementedError("Top apply not implemented yet");
-}
-
-/*
-//lambda application - function call
-apply(closure, arguments, env) {
-  if (closure is datum.Primitive) {
-    return closure.primitive(env, arguments);
-  }
-  //if the closure is a Pair with the car 'closure
-  if (closure is datum.Closure) {
-    var body = closure.code;
-    var frame = closure.environment.clone();
-
-    //pair up -- set the formals to the actuals and create the frame
-    Iterable<datum.Symbol> sym = frame.symbols;
-    var symI = sym.iterator;
-    var args = arguments;
-    while (symI.moveNext() && args != datum.Null.instance) {
-      frame[symI.current] = eval(args.car, env);
-      args = args.tail;
-    }
-    //eval the body in the frame context
-    return eval(body, frame);
-  }
-  throw ArgumentError('apply invoked with non-closure target');
-}
-
-evalList(args, env) {
-  if (args == datum.Null.instance) {
-    return args;
-  }
-  return datum.Pair(eval(args.car, env), evalList(args.cdr, env));
-}
-*/
