@@ -1,6 +1,6 @@
 import 'package:datum/src/model/datum_model.dart' as datum;
 import 'environment.dart';
-import 'package:datum/src/evaluation/evaluator.dart';
+import 'package:datum/src/evaluation/evaluator1.dart';
 
 class PrimitiveEnvironment extends Environment {
   PrimitiveEnvironment(super.parent) {
@@ -8,18 +8,14 @@ class PrimitiveEnvironment extends Environment {
     definePrimitive(datum.Primitive('define', _define));
     definePrimitive(datum.Primitive('lambda', _lambda));
     definePrimitive(datum.Primitive('quote', _quote));
+    definePrimitive(datum.Primitive('if', _if));
+
+    definePrimitive(datum.Primitive('set!', _set)); //assignment
+
     definePrimitive(datum.Primitive('eval', _eval));
     definePrimitive(datum.Primitive('apply', _apply));
-    definePrimitive(datum.Primitive('let', _let));
-    definePrimitive(datum.Primitive('letrec', _letrec));
-    definePrimitive(datum.Primitive('set!', _set)); //assignment
-    definePrimitive(datum.Primitive('print', _print));
 
-    //control structures
-    definePrimitive(datum.Primitive('cond', _cond));
-    definePrimitive(datum.Primitive('if', _if));
-    definePrimitive(datum.Primitive('while', _notSupportedError));
-    definePrimitive(datum.Primitive('sequence', _sequence));
+    definePrimitive(datum.Primitive('print', _print));
 
     //boolean operators
     definePrimitive(datum.Primitive('and', _and));
@@ -58,11 +54,11 @@ class PrimitiveEnvironment extends Environment {
     definePrimitive(datum.Primitive('pair?', _isPair));
     definePrimitive(datum.Primitive('procedure?', _isProcedure));
   }
-  static _notSupportedError(Environment e, args) {
+  static _notSupportedError(args, Environment e) {
     throw ArgumentError('${args.toString()} not supported yet!');
   }
 
-  static _define(Environment e, args) {
+  static _define(args, Environment e) {
     if (args.car is datum.Symbol) {
       return e.define(args.car, eval(args.cdr.car, e));
     }
@@ -70,41 +66,70 @@ class PrimitiveEnvironment extends Environment {
       final datum.Pair head = args.car;
       if (head.car is datum.Symbol) {
         return e.define(head.car as datum.Symbol,
-            _lambda(e, datum.Pair(head.cdr!, args.cdr)));
+            _lambda(datum.Pair(head.cdr!, args.cdr), e));
       }
     }
     throw ArgumentError('define invoked with invalid arguments');
   }
 
-  static _lambda(Environment e, args) {
-    var fe = Environment(e);
-    var body = args.cdr.car;
-    for (var arg = args.car; arg != datum.Null.instance; arg = arg.tail) {
-      var symbol = arg.car;
-      if (symbol is! datum.Symbol) {
+  static _lambda(args, Environment e) {
+    int numberOfMandatoryArguments = 0;
+    if (args.car is datum.Symbol) {
+      return datum.Closure(
+          args.cdr.car, [args.car], numberOfMandatoryArguments, e, true);
+    }
+    if (args.car is! datum.Null && args.car is! datum.Pair) {
+      throw ArgumentError('lambda formal argument should be a symbol');
+    }
+    List<datum.Datum> formals = [];
+    bool hasOptionals = false;
+    for (var arg = args.car; arg != datum.Null.instance; arg = arg.cdr) {
+      if (arg is datum.Symbol) {
+        //the last element of a dotted pair (x y . arg)
+        formals.add(arg);
+        return datum.Closure(
+            args.cdr.car, formals, numberOfMandatoryArguments, e, true);
+      }
+
+      var argument = arg.car;
+      if (argument is datum.Pair) {
+        hasOptionals = true;
+        if (argument.car is! datum.Symbol) {
+          throw ArgumentError('lambda formal argument should be a symbol');
+        }
+        formals.add(datum.Pair(argument.car, argument.cdr));
+        continue;
+      }
+      if (hasOptionals) {
+        throw ArgumentError(
+            'lambda: mandatory arguments not allowed after an optional argument');
+      }
+      if (argument is! datum.Symbol) {
         throw ArgumentError('lambda formal argument should be a symbol');
       }
-      fe.define(symbol, datum.Null.instance);
+      formals.add(argument);
+      numberOfMandatoryArguments++;
     }
 
-    return datum.Closure(body, [], 0, fe, false);
+    var body = args.cdr.car;
+    return datum.Closure(body, formals, numberOfMandatoryArguments, e, false);
   }
 
-  static _quote(Environment e, args) {
+  static _quote(args, Environment e) {
     return args.car;
   }
 
-  static _eval(Environment e, args) {
+  static _eval(args, Environment e) {
     return eval(eval(args.car, e), e);
   }
 
-  static _apply(Environment e, args) {
+  static _apply(args, Environment e) {
     var closure = eval(args.car, e);
     var arguments = eval(args.cdr.car, e);
-    return apply(closure, arguments, e);
+    return xapply(closure, arguments, e);
   }
 
-  static _let(Environment e, args) {
+  static _let(args, Environment e) {
     Environment scope = e.create();
     var body = args.cdr.car;
     for (var bindings = args.car;
@@ -122,7 +147,7 @@ class PrimitiveEnvironment extends Environment {
 
   /// https://www.cs.tufts.edu/comp/150VM/modules/archive/kent-dybvig/letrec.pdf
   /// https://legacy.cs.indiana.edu/~dyb/pubs/letrec-reloaded.pdf
-  static _letrec(Environment e, args) {
+  static _letrec(args, Environment e) {
     Environment scope = e.create();
     for (var bindings = args.car;
         bindings != datum.Null.instance;
@@ -145,11 +170,11 @@ class PrimitiveEnvironment extends Environment {
     return eval(args.cdr.car, scope);
   }
 
-  static _set(Environment e, args) {
+  static _set(args, Environment e) {
     return e[args.car] = eval(args.cdr.car, e);
   }
 
-  static _print(Environment e, args) {
+  static _print(args, Environment e) {
     String data = '';
     while (args != datum.Null.instance) {
       data += eval(args.car, e).literal;
@@ -159,7 +184,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Null.instance;
   }
 
-  static _cond(Environment e, args) {
+  static _cond(args, Environment e) {
     if (args == datum.Null.instance) {
       return datum.Null.instance;
     }
@@ -176,7 +201,7 @@ class PrimitiveEnvironment extends Environment {
     return eval(args.car.cdr.car, e);
   }
 
-  static _if(Environment e, args) {
+  static _if(args, Environment e) {
     final condition = eval(args.head, e);
     if (condition is! datum.Boolean) {
       throw ArgumentError('if call with non-boolean condition');
@@ -189,7 +214,7 @@ class PrimitiveEnvironment extends Environment {
     return eval(args.tail.tail.head, e);
   }
 
-  static _sequence(Environment e, args) {
+  static _sequence(args, Environment e) {
     datum.Datum result = datum.Null.instance;
     for (var exp = args; exp != datum.Null.instance; exp = exp.cdr) {
       result = eval(exp.car, e);
@@ -197,7 +222,7 @@ class PrimitiveEnvironment extends Environment {
     return result;
   }
 
-  static _and(Environment e, args) {
+  static _and(args, Environment e) {
     while (args != null) {
       var operand = eval(args.head, e);
       if (operand is! datum.Boolean) {
@@ -211,7 +236,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Boolean.dTrue;
   }
 
-  static _or(Environment e, args) {
+  static _or(args, Environment e) {
     while (args != null) {
       var operand = eval(args.head, e);
       if (operand is! datum.Boolean) {
@@ -225,7 +250,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Boolean.dFalse;
   }
 
-  static _not(Environment e, args) {
+  static _not(args, Environment e) {
     var operand = eval(args.head, e);
     if (operand is! datum.Boolean) {
       throw ArgumentError("'not' defined only with boolean arguments");
@@ -233,7 +258,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Boolean.fromDart(operand != datum.Boolean.dTrue);
   }
 
-  static _plus(Environment e, args) {
+  static _plus(args, Environment e) {
     var value = eval(args.head, e).value;
     for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value += eval(args.head, e).value;
@@ -241,7 +266,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Number.fromDart(value);
   }
 
-  static _minus(Environment e, args) {
+  static _minus(args, Environment e) {
     var value = eval(args.head, e).value;
     if (args.tail == datum.Null) {
       return datum.Number.fromDart(-value);
@@ -252,7 +277,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Number.fromDart(value);
   }
 
-  static _multiply(Environment e, args) {
+  static _multiply(args, Environment e) {
     var value = eval(args.head, e).value;
     for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value *= eval(args.head, e).value;
@@ -260,7 +285,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Number.fromDart(value);
   }
 
-  static _divide(Environment e, args) {
+  static _divide(args, Environment e) {
     var value = eval(args.head, e).value;
     for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value /= eval(args.head, e).value;
@@ -268,7 +293,7 @@ class PrimitiveEnvironment extends Environment {
     return datum.Number.fromDart(value);
   }
 
-  static _modulo(Environment e, args) {
+  static _modulo(args, Environment e) {
     var value = eval(args.head, e).value;
     for (args = args.tail; args != datum.Null.instance; args = args.tail) {
       value %= eval(args.head, e).value;
@@ -276,54 +301,54 @@ class PrimitiveEnvironment extends Environment {
     return datum.Number.fromDart(value);
   }
 
-  static _lessThan(Environment e, args) {
+  static _lessThan(args, Environment e) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
     return datum.Boolean.fromDart(lhs.compareTo(rhs) < 0);
   }
 
-  static _lessThanOrEqual(Environment e, args) {
+  static _lessThanOrEqual(args, Environment e) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
     return datum.Boolean.fromDart(lhs.compareTo(rhs) <= 0);
   }
 
-  static _equal(Environment e, args) {
+  static _equal(args, Environment e) {
     final lhs = eval(args.car, e);
     final rhs = eval(args.cdr.car, e);
     return datum.Boolean.fromDart(lhs == rhs);
   }
 
-  static _notEqual(Environment e, args) {
+  static _notEqual(args, Environment e) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
     return datum.Boolean.fromDart(lhs != rhs);
   }
 
-  static _greaterThan(Environment e, args) {
+  static _greaterThan(args, Environment e) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
     return datum.Boolean.fromDart(lhs.compareTo(rhs) > 0);
   }
 
-  static _greaterThanOrEqual(Environment e, args) {
+  static _greaterThanOrEqual(args, Environment e) {
     final lhs = eval(args.car, e).value;
     final rhs = eval(args.cdr.car, e).value;
     return datum.Boolean.fromDart(lhs.compareTo(rhs) >= 0);
   }
 
-  static _cons(Environment e, args) {
+  static _cons(args, Environment e) {
     final head = eval(args.head, e);
     final tail = eval(args.tail.head, e);
     return datum.Pair(head, tail);
   }
 
-  static _car(Environment e, args) {
+  static _car(args, Environment e) {
     final cons = eval(args.head, e);
     return cons is datum.Pair ? cons.head : datum.Null.instance;
   }
 
-  static _carSet(Environment e, args) {
+  static _carSet(args, Environment e) {
     final cons = eval(args.head, e);
     if (cons is datum.Pair) {
       cons.car = eval(args.tail.head, e);
@@ -331,12 +356,12 @@ class PrimitiveEnvironment extends Environment {
     return cons;
   }
 
-  static _cdr(Environment e, args) {
+  static _cdr(args, Environment e) {
     final cons = eval(args.head, e);
     return cons is datum.Pair ? cons.tail : datum.Null.instance;
   }
 
-  static _cdrSet(Environment e, args) {
+  static _cdrSet(args, Environment e) {
     final cons = eval(args.head, e);
     if (cons is datum.Pair) {
       cons.cdr = eval(args.tail.head, e);
@@ -344,42 +369,42 @@ class PrimitiveEnvironment extends Environment {
     return cons;
   }
 
-  static _isNull(Environment e, args) {
+  static _isNull(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand == datum.Null.instance);
   }
 
-  static _isBoolean(Environment e, args) {
+  static _isBoolean(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.Boolean);
   }
 
-  static _isChar(Environment e, args) {
+  static _isChar(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.Character);
   }
 
-  static _isNumber(Environment e, args) {
+  static _isNumber(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.Number);
   }
 
-  static _isSymbol(Environment e, args) {
+  static _isSymbol(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.Symbol);
   }
 
-  static _isString(Environment e, args) {
+  static _isString(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.String);
   }
 
-  static _isPair(Environment e, args) {
+  static _isPair(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(operand is datum.Pair);
   }
 
-  static _isProcedure(Environment e, args) {
+  static _isProcedure(args, Environment e) {
     var operand = eval(args.car, e);
     return datum.Boolean.fromDart(
         operand is datum.Closure || operand is datum.Primitive);

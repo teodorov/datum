@@ -98,4 +98,9 @@ class DatumPrinter extends datum.DatumVisitor {
   visitEnvironment(Environment item) {
     return '(environment (${item.entries.fold('', (previousValue, element) => '$previousValue (${element.key} . ${element.value.accept(this)})')}))';
   }
+
+  @override
+  visitQuote(datum.Quote item) {
+    return "'${item.datum.accept(this)}";
+  }
 }

@@ -34,6 +34,15 @@ abstract class DatumListener extends ParseTreeListener {
   /// [ctx] the parse tree
   void exitDefinition(DefinitionContext ctx);
 
+  /// Enter a parse tree produced by the [Quote]
+  /// labeled alternative in [file.parserName>.datum].
+  /// [ctx] the parse tree
+  void enterQuote(QuoteContext ctx);
+  /// Exit a parse tree produced by the [Quote]
+  /// labeled alternative in [DatumParser.datum].
+  /// [ctx] the parse tree
+  void exitQuote(QuoteContext ctx);
+
   /// Enter a parse tree produced by the [Commented]
   /// labeled alternative in [file.parserName>.datum].
   /// [ctx] the parse tree

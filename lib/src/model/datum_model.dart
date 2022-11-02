@@ -20,6 +20,7 @@ abstract class DatumVisitor {
   visitPrimitive(Primitive item);
   visitClosure(Closure item);
   visitEnvironment(Environment item);
+  visitQuote(Quote item);
 }
 
 abstract class Datum {
@@ -38,9 +39,15 @@ abstract class Datum {
 
 //function value
 class Closure extends Datum {
-  Closure(this.code, this.environment);
+  Closure(this.code, this.formals, this.numberOfMandatoryArguments,
+      this.environment, this.isVariadic);
+
   final Environment environment;
   final Datum code;
+  final core.List<Datum>
+      formals; //Datum can be only Symbol and (optional argument) Pair where car is Symbol and cdr is initial expression
+  final core.bool isVariadic;
+  final numberOfMandatoryArguments;
 
   @core.override
   accept(visitor) {
@@ -213,5 +220,15 @@ class Primitive extends Datum {
   @core.override
   accept(visitor) {
     return visitor.visitPrimitive(this);
+  }
+}
+
+class Quote extends Datum {
+  Quote(this.datum);
+  final Datum datum;
+
+  @core.override
+  accept(visitor) {
+    return visitor.visitQuote(this);
   }
 }

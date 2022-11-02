@@ -4,6 +4,7 @@ datum
     : leaf_datum                #Leaf
     | composite_datum           #Composite
     | label datum               #Definition
+    | '\'' datum                #Quote
     | '#;' datum                #Commented
     ;
 

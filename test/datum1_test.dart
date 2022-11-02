@@ -1,7 +1,9 @@
+import 'dart:math';
+
 import 'package:datum/src/evaluation/reader.dart';
 import 'package:datum/src/evaluation/printer.dart';
-import 'package:datum/src/domains/primitives.dart';
-import 'package:datum/src/evaluation/evaluator.dart';
+import 'package:datum/src/domains/primitives1.dart';
+import 'package:datum/src/evaluation/evaluator1.dart';
 import 'package:test/test.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
 
@@ -83,47 +85,179 @@ void main() {
     identical(b.name, d.name);
   });
 
-  var primitives = PrimitiveEnvironment(null).create();
+  var environment = PrimitiveEnvironment(null).create();
   test('eval add', () {
     var exp = reader('(+ 1 2)');
-    var result = eval(exp, primitives);
+    var result = eval(exp, environment);
     expect(result.value, 3);
     exp = reader('(+ 1 2 3 4)');
-    expect(eval(exp, primitives).value, 10);
+    expect(eval(exp, environment).value, 10);
   });
 
-  test('eval lambda', () {
-    var exp = reader('(lambda (x y) (+ x y))');
-    var closure = eval(exp, primitives);
+  re(exp) {
+    var reader = DatumReader().parseString;
+    return eval(reader(exp), environment);
+  }
+
+  test('lambda no arguments', () {
+    var closure = re('(lambda () (+ x y))');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 0);
+    expect(closure.numberOfMandatoryArguments, 0);
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), '(+ x y)');
+  });
+  test('lambda one argument', () {
+    var closure = re('(lambda (x) (+ x y))');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 1);
+    expect(closure.numberOfMandatoryArguments, 1);
+    for (var formal in closure.formals) {
+      expect(formal, isA<datum.Symbol>());
+    }
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), '(+ x y)');
+  });
+
+  test('lambda two arguments', () {
+    var closure = re('(lambda (x y) (+ x y))');
     expect(closure, isA<datum.Closure>());
-    expect(closure.environment.symbols.length, 2);
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 2);
+    expect(closure.numberOfMandatoryArguments, 2);
+    for (var formal in closure.formals) {
+      expect(formal, isA<datum.Symbol>());
+    }
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), '(+ x y)');
+  });
 
-    exp = reader('(lambda () (+ x y))');
-    closure = eval(exp, primitives);
-    expect(closure.environment.symbols.length, 0);
+  test('lambda variadic rest-only', () {
+    var closure = re('(lambda x x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 1);
+    expect(closure.numberOfMandatoryArguments, 0);
+    for (var formal in closure.formals) {
+      expect(formal, isA<datum.Symbol>());
+    }
+    expect(closure.isVariadic, true);
+    expect(printer(closure.code), 'x');
+  });
 
-    exp = reader('(lambda (x) (+ x y))');
-    closure = eval(exp, primitives);
-    expect(closure.environment.symbols.length, 1);
+  test('lambda variadic two', () {
+    datum.Closure closure = re('(lambda (x . y) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 2);
+    expect(closure.numberOfMandatoryArguments, 1);
+    for (var formal in closure.formals) {
+      expect(formal, isA<datum.Symbol>());
+    }
+    expect(closure.isVariadic, true);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda variadic three', () {
+    datum.Closure closure = re('(lambda (x y . z) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 3);
+    expect(closure.numberOfMandatoryArguments, 2);
+    for (var formal in closure.formals) {
+      expect(formal, isA<datum.Symbol>());
+    }
+    expect(closure.isVariadic, true);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda only optional', () {
+    datum.Closure closure = re('(lambda ((x 1)) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 1);
+    expect(closure.numberOfMandatoryArguments, 0);
+    expect(closure.formals[0], isA<datum.Pair>());
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda two optional', () {
+    datum.Closure closure = re('(lambda ((x 1) (y (+ 2 3))) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 2);
+    expect(closure.numberOfMandatoryArguments, 0);
+    expect(closure.formals[0], isA<datum.Pair>());
+    expect(closure.formals[1], isA<datum.Pair>());
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda mandatory and optional', () {
+    datum.Closure closure = re('(lambda (z t (x 1)) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 3);
+    expect(closure.numberOfMandatoryArguments, 2);
+    expect(closure.formals[2], isA<datum.Pair>());
+    expect(closure.isVariadic, false);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda mandatory, optional variadic', () {
+    datum.Closure closure = re('(lambda (z t (x 1) . y) x)');
+    expect(closure.environment, environment);
+    expect(closure.formals.length, 4);
+    expect(closure.numberOfMandatoryArguments, 2);
+    expect(closure.formals[2], isA<datum.Pair>());
+    expect(closure.isVariadic, true);
+    expect(printer(closure.code), 'x');
+  });
+
+  test('lambda mandatory after optional', () {
+    try {
+      re('(lambda ((x 1) y) x)');
+    } catch (e) {
+      expect(e, isArgumentError);
+    }
+  });
+
+  test('lambda argument should be a symbol', () {
+    try {
+      re('(lambda (12) x)');
+    } catch (e) {
+      expect(e, isArgumentError);
+    }
+  });
+
+  test('lambda rest-only should be a symbol', () {
+    try {
+      re('(lambda 2 x)');
+    } catch (e) {
+      expect(e, isArgumentError);
+    }
+  });
+
+  test('first argument of apply should be a closure', () {
+    try {
+      re('(2 3)');
+    } catch (e) {
+      expect(e, isArgumentError);
+    }
   });
 
   test('eval lambda application', () {
     var exp = reader('((lambda (x y) (+ x y)) 2 3)');
-    var res = eval(exp, primitives);
+    var res = eval(exp, environment);
     expect(res.value, 5);
   });
 
   test("eval define", () {
     var exp = reader('((define (false? a) (= a false)) true)');
-    var res = eval(exp, primitives.create());
+    var res = eval(exp, environment.create());
     expect(res, datum.Boolean.dFalse);
 
     exp = reader('((define (false? a) (= a false)) (false? true))');
-    res = evalList(exp, primitives.create());
+    res = evalList(exp, environment.create());
     expect(res.cdr.car, datum.Boolean.dFalse);
 
     exp = reader('(define two 2)');
-    res = eval(exp, primitives);
+    res = eval(exp, environment);
     expect(res.value, 2);
   });
 
@@ -133,13 +267,13 @@ void main() {
         (lambda (x y) (- y x)))
       (reverse-subtract 7 10)
     )''');
-    var res = evalList(exp, primitives).cdr.car;
+    var res = evalList(exp, environment).cdr.car;
     expect(printer(res), '3');
   });
 
   test('eval print', () {
     var exp = reader('(print "hello world from datum!")');
-    identical(eval(exp, primitives), datum.Null.instance);
+    identical(eval(exp, environment), datum.Null.instance);
   });
 
   test('eval let', () {
@@ -147,13 +281,12 @@ void main() {
       let ((x 2) (y 3))
         (* x y)
     )''');
-    var res = eval(exp, primitives);
+    var res = eval(exp, environment);
     expect(printer(res), '6');
   });
 
   rep(exp) {
-    var reader = DatumReader().parseString;
-    return printer(eval(reader(exp), primitives));
+    return printer(re(exp));
   }
 
   test('eval sequence', () {
@@ -295,6 +428,6 @@ void main() {
   });
 
   test('prim', () {
-    print(primitives.parent.toString());
+    print(environment.parent.toString());
   });
 }

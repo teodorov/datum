@@ -117,4 +117,9 @@ class ANTLR4Tree2Datum extends DatumBaseListener {
   void exitCommented(CommentedContext ctx) {
     map[ctx] = datum.Commented(map[ctx.datum()]!);
   }
+
+  @override
+  void exitQuote(QuoteContext ctx) {
+    map[ctx] = datum.Quote(map[ctx.datum()]!);
+  }
 }

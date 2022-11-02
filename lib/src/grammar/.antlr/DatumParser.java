@@ -16,11 +16,11 @@ public class DatumParser extends Parser {
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		T__0=1, BOOL=2, TRUE=3, FALSE=4, LPAREN=5, RPAREN=6, LSQUARE=7, RSQUARE=8, 
-		SEMICOLON=9, DASHSEMI=10, DOT=11, NUMBER=12, STRING=13, SYMBOL=14, INITIAL=15, 
-		SUBSEQUENT=16, LETTER=17, SPECIAL_INITIAL=18, SPECIAL_SUBSEQUENT=19, EXPLICIT_SIGN=20, 
-		DASH=21, EQUALS=22, NATURAL=23, DIGIT=24, LINE_COMMENT=25, BLOCK_COMMENT=26, 
-		WS=27;
+		T__0=1, T__1=2, BOOL=3, TRUE=4, FALSE=5, LPAREN=6, RPAREN=7, LSQUARE=8, 
+		RSQUARE=9, SEMICOLON=10, DASHSEMI=11, DOT=12, NUMBER=13, STRING=14, SYMBOL=15, 
+		INITIAL=16, SUBSEQUENT=17, LETTER=18, SPECIAL_INITIAL=19, SPECIAL_SUBSEQUENT=20, 
+		EXPLICIT_SIGN=21, DASH=22, EQUALS=23, NATURAL=24, DIGIT=25, LINE_COMMENT=26, 
+		BLOCK_COMMENT=27, WS=28;
 	public static final int
 		RULE_datum = 0, RULE_leaf_datum = 1, RULE_composite_datum = 2, RULE_label = 3;
 	private static String[] makeRuleNames() {
@@ -32,19 +32,19 @@ public class DatumParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'#\\'", null, "'true'", "'false'", "'('", "')'", "'['", "']='", 
-			"';'", "'#;'", "'.'", null, null, null, null, null, null, null, null, 
-			null, "'#'", "'='"
+			null, "'''", "'#\\'", null, "'true'", "'false'", "'('", "')'", "'['", 
+			"']='", "';'", "'#;'", "'.'", null, null, null, null, null, null, null, 
+			null, null, "'#'", "'='"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, null, "BOOL", "TRUE", "FALSE", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", 
-			"SEMICOLON", "DASHSEMI", "DOT", "NUMBER", "STRING", "SYMBOL", "INITIAL", 
-			"SUBSEQUENT", "LETTER", "SPECIAL_INITIAL", "SPECIAL_SUBSEQUENT", "EXPLICIT_SIGN", 
-			"DASH", "EQUALS", "NATURAL", "DIGIT", "LINE_COMMENT", "BLOCK_COMMENT", 
-			"WS"
+			null, null, null, "BOOL", "TRUE", "FALSE", "LPAREN", "RPAREN", "LSQUARE", 
+			"RSQUARE", "SEMICOLON", "DASHSEMI", "DOT", "NUMBER", "STRING", "SYMBOL", 
+			"INITIAL", "SUBSEQUENT", "LETTER", "SPECIAL_INITIAL", "SPECIAL_SUBSEQUENT", 
+			"EXPLICIT_SIGN", "DASH", "EQUALS", "NATURAL", "DIGIT", "LINE_COMMENT", 
+			"BLOCK_COMMENT", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -109,6 +109,12 @@ public class DatumParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class QuoteContext extends DatumContext {
+		public DatumContext datum() {
+			return getRuleContext(DatumContext.class,0);
+		}
+		public QuoteContext(DatumContext ctx) { copyFrom(ctx); }
+	}
 	public static class CompositeContext extends DatumContext {
 		public Composite_datumContext composite_datum() {
 			return getRuleContext(Composite_datumContext.class,0);
@@ -142,10 +148,10 @@ public class DatumParser extends Parser {
 		DatumContext _localctx = new DatumContext(_ctx, getState());
 		enterRule(_localctx, 0, RULE_datum);
 		try {
-			setState(15);
+			setState(17);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
-			case T__0:
+			case T__1:
 			case BOOL:
 			case NUMBER:
 			case STRING:
@@ -175,13 +181,23 @@ public class DatumParser extends Parser {
 				datum();
 				}
 				break;
-			case DASHSEMI:
-				_localctx = new CommentedContext(_localctx);
+			case T__0:
+				_localctx = new QuoteContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(13);
-				match(DASHSEMI);
+				match(T__0);
 				setState(14);
+				datum();
+				}
+				break;
+			case DASHSEMI:
+				_localctx = new CommentedContext(_localctx);
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(15);
+				match(DASHSEMI);
+				setState(16);
 				datum();
 				}
 				break;
@@ -236,14 +252,14 @@ public class DatumParser extends Parser {
 		Leaf_datumContext _localctx = new Leaf_datumContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_leaf_datum);
 		try {
-			setState(23);
+			setState(25);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case BOOL:
 				_localctx = new BooleanContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(17);
+				setState(19);
 				match(BOOL);
 				}
 				break;
@@ -251,18 +267,18 @@ public class DatumParser extends Parser {
 				_localctx = new NumberContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(18);
+				setState(20);
 				match(NUMBER);
 				}
 				break;
-			case T__0:
+			case T__1:
 				_localctx = new CharacterContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(19);
-				match(T__0);
+				setState(21);
+				match(T__1);
 				{
-				setState(20);
+				setState(22);
 				((CharacterContext)_localctx).character = matchWildcard();
 				}
 				}
@@ -271,7 +287,7 @@ public class DatumParser extends Parser {
 				_localctx = new StringContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(21);
+				setState(23);
 				match(STRING);
 				}
 				break;
@@ -279,7 +295,7 @@ public class DatumParser extends Parser {
 				_localctx = new SymbolContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(22);
+				setState(24);
 				match(SYMBOL);
 				}
 				break;
@@ -338,34 +354,34 @@ public class DatumParser extends Parser {
 		enterRule(_localctx, 4, RULE_composite_datum);
 		int _la;
 		try {
-			setState(43);
+			setState(45);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,4,_ctx) ) {
 			case 1:
 				_localctx = new DottedPairContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(25);
+				setState(27);
 				match(LPAREN);
-				setState(27); 
+				setState(29); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(26);
+					setState(28);
 					datum();
 					}
 					}
-					setState(29); 
+					setState(31); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
-				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << BOOL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << DASHSEMI) | (1L << NUMBER) | (1L << STRING) | (1L << SYMBOL))) != 0) );
-				setState(31);
-				match(DOT);
-				setState(32);
-				datum();
+				} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << BOOL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << DASHSEMI) | (1L << NUMBER) | (1L << STRING) | (1L << SYMBOL))) != 0) );
 				setState(33);
+				match(DOT);
+				setState(34);
+				datum();
+				setState(35);
 				match(RPAREN);
 				}
 				break;
@@ -373,23 +389,23 @@ public class DatumParser extends Parser {
 				_localctx = new ListContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(35);
+				setState(37);
 				match(LPAREN);
-				setState(39);
+				setState(41);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << BOOL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << DASHSEMI) | (1L << NUMBER) | (1L << STRING) | (1L << SYMBOL))) != 0)) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__0) | (1L << T__1) | (1L << BOOL) | (1L << LPAREN) | (1L << LSQUARE) | (1L << DASHSEMI) | (1L << NUMBER) | (1L << STRING) | (1L << SYMBOL))) != 0)) {
 					{
 					{
-					setState(36);
+					setState(38);
 					datum();
 					}
 					}
-					setState(41);
+					setState(43);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(42);
+				setState(44);
 				match(RPAREN);
 				}
 				break;
@@ -422,11 +438,11 @@ public class DatumParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(45);
-			match(LSQUARE);
-			setState(46);
-			match(SYMBOL);
 			setState(47);
+			match(LSQUARE);
+			setState(48);
+			match(SYMBOL);
+			setState(49);
 			match(RSQUARE);
 			}
 		}
@@ -442,21 +458,22 @@ public class DatumParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\35\64\4\2\t\2\4\3"+
-		"\t\3\4\4\t\4\4\5\t\5\3\2\3\2\3\2\3\2\3\2\3\2\3\2\5\2\22\n\2\3\3\3\3\3"+
-		"\3\3\3\3\3\3\3\5\3\32\n\3\3\4\3\4\6\4\36\n\4\r\4\16\4\37\3\4\3\4\3\4\3"+
-		"\4\3\4\3\4\7\4(\n\4\f\4\16\4+\13\4\3\4\5\4.\n\4\3\5\3\5\3\5\3\5\3\5\2"+
-		"\2\6\2\4\6\b\2\2\29\2\21\3\2\2\2\4\31\3\2\2\2\6-\3\2\2\2\b/\3\2\2\2\n"+
-		"\22\5\4\3\2\13\22\5\6\4\2\f\r\5\b\5\2\r\16\5\2\2\2\16\22\3\2\2\2\17\20"+
-		"\7\f\2\2\20\22\5\2\2\2\21\n\3\2\2\2\21\13\3\2\2\2\21\f\3\2\2\2\21\17\3"+
-		"\2\2\2\22\3\3\2\2\2\23\32\7\4\2\2\24\32\7\16\2\2\25\26\7\3\2\2\26\32\13"+
-		"\2\2\2\27\32\7\17\2\2\30\32\7\20\2\2\31\23\3\2\2\2\31\24\3\2\2\2\31\25"+
-		"\3\2\2\2\31\27\3\2\2\2\31\30\3\2\2\2\32\5\3\2\2\2\33\35\7\7\2\2\34\36"+
-		"\5\2\2\2\35\34\3\2\2\2\36\37\3\2\2\2\37\35\3\2\2\2\37 \3\2\2\2 !\3\2\2"+
-		"\2!\"\7\r\2\2\"#\5\2\2\2#$\7\b\2\2$.\3\2\2\2%)\7\7\2\2&(\5\2\2\2\'&\3"+
-		"\2\2\2(+\3\2\2\2)\'\3\2\2\2)*\3\2\2\2*,\3\2\2\2+)\3\2\2\2,.\7\b\2\2-\33"+
-		"\3\2\2\2-%\3\2\2\2.\7\3\2\2\2/\60\7\t\2\2\60\61\7\20\2\2\61\62\7\n\2\2"+
-		"\62\t\3\2\2\2\7\21\31\37)-";
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36\66\4\2\t\2\4\3"+
+		"\t\3\4\4\t\4\4\5\t\5\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\5\2\24\n\2\3"+
+		"\3\3\3\3\3\3\3\3\3\3\3\5\3\34\n\3\3\4\3\4\6\4 \n\4\r\4\16\4!\3\4\3\4\3"+
+		"\4\3\4\3\4\3\4\7\4*\n\4\f\4\16\4-\13\4\3\4\5\4\60\n\4\3\5\3\5\3\5\3\5"+
+		"\3\5\2\2\6\2\4\6\b\2\2\2<\2\23\3\2\2\2\4\33\3\2\2\2\6/\3\2\2\2\b\61\3"+
+		"\2\2\2\n\24\5\4\3\2\13\24\5\6\4\2\f\r\5\b\5\2\r\16\5\2\2\2\16\24\3\2\2"+
+		"\2\17\20\7\3\2\2\20\24\5\2\2\2\21\22\7\r\2\2\22\24\5\2\2\2\23\n\3\2\2"+
+		"\2\23\13\3\2\2\2\23\f\3\2\2\2\23\17\3\2\2\2\23\21\3\2\2\2\24\3\3\2\2\2"+
+		"\25\34\7\5\2\2\26\34\7\17\2\2\27\30\7\4\2\2\30\34\13\2\2\2\31\34\7\20"+
+		"\2\2\32\34\7\21\2\2\33\25\3\2\2\2\33\26\3\2\2\2\33\27\3\2\2\2\33\31\3"+
+		"\2\2\2\33\32\3\2\2\2\34\5\3\2\2\2\35\37\7\b\2\2\36 \5\2\2\2\37\36\3\2"+
+		"\2\2 !\3\2\2\2!\37\3\2\2\2!\"\3\2\2\2\"#\3\2\2\2#$\7\16\2\2$%\5\2\2\2"+
+		"%&\7\t\2\2&\60\3\2\2\2\'+\7\b\2\2(*\5\2\2\2)(\3\2\2\2*-\3\2\2\2+)\3\2"+
+		"\2\2+,\3\2\2\2,.\3\2\2\2-+\3\2\2\2.\60\7\t\2\2/\35\3\2\2\2/\'\3\2\2\2"+
+		"\60\7\3\2\2\2\61\62\7\n\2\2\62\63\7\21\2\2\63\64\7\13\2\2\64\t\3\2\2\2"+
+		"\7\23\33!+/";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

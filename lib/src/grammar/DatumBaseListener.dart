@@ -36,6 +36,14 @@ class DatumBaseListener implements DatumListener {
 
   /// The default implementation does nothing.
   @override
+  void enterQuote(QuoteContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
+  void exitQuote(QuoteContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
   void enterCommented(CommentedContext ctx) {}
 
   /// The default implementation does nothing.

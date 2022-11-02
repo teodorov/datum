@@ -13,15 +13,16 @@ class DatumParser extends Parser {
   static final List<DFA> _decisionToDFA = List.generate(
       _ATN.numberOfDecisions, (i) => DFA(_ATN.getDecisionState(i), i));
   static final PredictionContextCache _sharedContextCache = PredictionContextCache();
-  static const int TOKEN_T__0 = 1, TOKEN_BOOL = 2, TOKEN_TRUE = 3, TOKEN_FALSE = 4, 
-                   TOKEN_LPAREN = 5, TOKEN_RPAREN = 6, TOKEN_LSQUARE = 7, 
-                   TOKEN_RSQUARE = 8, TOKEN_SEMICOLON = 9, TOKEN_DASHSEMI = 10, 
-                   TOKEN_DOT = 11, TOKEN_NUMBER = 12, TOKEN_STRING = 13, 
-                   TOKEN_SYMBOL = 14, TOKEN_INITIAL = 15, TOKEN_SUBSEQUENT = 16, 
-                   TOKEN_LETTER = 17, TOKEN_SPECIAL_INITIAL = 18, TOKEN_SPECIAL_SUBSEQUENT = 19, 
-                   TOKEN_EXPLICIT_SIGN = 20, TOKEN_DASH = 21, TOKEN_EQUALS = 22, 
-                   TOKEN_NATURAL = 23, TOKEN_DIGIT = 24, TOKEN_LINE_COMMENT = 25, 
-                   TOKEN_BLOCK_COMMENT = 26, TOKEN_WS = 27;
+  static const int TOKEN_T__0 = 1, TOKEN_T__1 = 2, TOKEN_BOOL = 3, TOKEN_TRUE = 4, 
+                   TOKEN_FALSE = 5, TOKEN_LPAREN = 6, TOKEN_RPAREN = 7, 
+                   TOKEN_LSQUARE = 8, TOKEN_RSQUARE = 9, TOKEN_SEMICOLON = 10, 
+                   TOKEN_DASHSEMI = 11, TOKEN_DOT = 12, TOKEN_NUMBER = 13, 
+                   TOKEN_STRING = 14, TOKEN_SYMBOL = 15, TOKEN_INITIAL = 16, 
+                   TOKEN_SUBSEQUENT = 17, TOKEN_LETTER = 18, TOKEN_SPECIAL_INITIAL = 19, 
+                   TOKEN_SPECIAL_SUBSEQUENT = 20, TOKEN_EXPLICIT_SIGN = 21, 
+                   TOKEN_DASH = 22, TOKEN_EQUALS = 23, TOKEN_NATURAL = 24, 
+                   TOKEN_DIGIT = 25, TOKEN_LINE_COMMENT = 26, TOKEN_BLOCK_COMMENT = 27, 
+                   TOKEN_WS = 28;
 
   @override
   final List<String> ruleNames = [
@@ -29,12 +30,12 @@ class DatumParser extends Parser {
   ];
 
   static final List<String?> _LITERAL_NAMES = [
-      null, "'#\\'", null, "'true'", "'false'", "'('", "')'", "'['", "']='", 
-      "';'", "'#;'", "'.'", null, null, null, null, null, null, null, null, 
-      null, "'#'", "'='"
+      null, "'''", "'#\\'", null, "'true'", "'false'", "'('", "')'", "'['", 
+      "']='", "';'", "'#;'", "'.'", null, null, null, null, null, null, 
+      null, null, null, "'#'", "'='"
   ];
   static final List<String?> _SYMBOLIC_NAMES = [
-      null, null, "BOOL", "TRUE", "FALSE", "LPAREN", "RPAREN", "LSQUARE", 
+      null, null, null, "BOOL", "TRUE", "FALSE", "LPAREN", "RPAREN", "LSQUARE", 
       "RSQUARE", "SEMICOLON", "DASHSEMI", "DOT", "NUMBER", "STRING", "SYMBOL", 
       "INITIAL", "SUBSEQUENT", "LETTER", "SPECIAL_INITIAL", "SPECIAL_SUBSEQUENT", 
       "EXPLICIT_SIGN", "DASH", "EQUALS", "NATURAL", "DIGIT", "LINE_COMMENT", 
@@ -66,10 +67,10 @@ class DatumParser extends Parser {
     dynamic _localctx = DatumContext(context, state);
     enterRule(_localctx, 0, RULE_datum);
     try {
-      state = 15;
+      state = 17;
       errorHandler.sync(this);
       switch (tokenStream.LA(1)!) {
-      case TOKEN_T__0:
+      case TOKEN_T__1:
       case TOKEN_BOOL:
       case TOKEN_NUMBER:
       case TOKEN_STRING:
@@ -93,12 +94,20 @@ class DatumParser extends Parser {
         state = 11;
         datum();
         break;
-      case TOKEN_DASHSEMI:
-        _localctx = CommentedContext(_localctx);
+      case TOKEN_T__0:
+        _localctx = QuoteContext(_localctx);
         enterOuterAlt(_localctx, 4);
         state = 13;
-        match(TOKEN_DASHSEMI);
+        match(TOKEN_T__0);
         state = 14;
+        datum();
+        break;
+      case TOKEN_DASHSEMI:
+        _localctx = CommentedContext(_localctx);
+        enterOuterAlt(_localctx, 5);
+        state = 15;
+        match(TOKEN_DASHSEMI);
+        state = 16;
         datum();
         break;
       default:
@@ -118,40 +127,40 @@ class DatumParser extends Parser {
     dynamic _localctx = Leaf_datumContext(context, state);
     enterRule(_localctx, 2, RULE_leaf_datum);
     try {
-      state = 23;
+      state = 25;
       errorHandler.sync(this);
       switch (tokenStream.LA(1)!) {
       case TOKEN_BOOL:
         _localctx = BooleanContext(_localctx);
         enterOuterAlt(_localctx, 1);
-        state = 17;
+        state = 19;
         match(TOKEN_BOOL);
         break;
       case TOKEN_NUMBER:
         _localctx = NumberContext(_localctx);
         enterOuterAlt(_localctx, 2);
-        state = 18;
+        state = 20;
         match(TOKEN_NUMBER);
         break;
-      case TOKEN_T__0:
+      case TOKEN_T__1:
         _localctx = CharacterContext(_localctx);
         enterOuterAlt(_localctx, 3);
-        state = 19;
-        match(TOKEN_T__0);
+        state = 21;
+        match(TOKEN_T__1);
 
-        state = 20;
+        state = 22;
         _localctx.character = matchWildcard();
         break;
       case TOKEN_STRING:
         _localctx = StringContext(_localctx);
         enterOuterAlt(_localctx, 4);
-        state = 21;
+        state = 23;
         match(TOKEN_STRING);
         break;
       case TOKEN_SYMBOL:
         _localctx = SymbolContext(_localctx);
         enterOuterAlt(_localctx, 5);
-        state = 22;
+        state = 24;
         match(TOKEN_SYMBOL);
         break;
       default:
@@ -172,47 +181,47 @@ class DatumParser extends Parser {
     enterRule(_localctx, 4, RULE_composite_datum);
     int _la;
     try {
-      state = 43;
+      state = 45;
       errorHandler.sync(this);
       switch (interpreter!.adaptivePredict(tokenStream, 4, context)) {
       case 1:
         _localctx = DottedPairContext(_localctx);
         enterOuterAlt(_localctx, 1);
-        state = 25;
+        state = 27;
         match(TOKEN_LPAREN);
-        state = 27; 
+        state = 29; 
         errorHandler.sync(this);
         _la = tokenStream.LA(1)!;
         do {
-          state = 26;
+          state = 28;
           datum();
-          state = 29; 
+          state = 31; 
           errorHandler.sync(this);
           _la = tokenStream.LA(1)!;
-        } while (((_la) & ~0x3f) == 0 && ((1 << _la) & 29862) != 0);
-        state = 31;
-        match(TOKEN_DOT);
-        state = 32;
-        datum();
+        } while (((_la) & ~0x3f) == 0 && ((1 << _la) & 59726) != 0);
         state = 33;
+        match(TOKEN_DOT);
+        state = 34;
+        datum();
+        state = 35;
         match(TOKEN_RPAREN);
         break;
       case 2:
         _localctx = ListContext(_localctx);
         enterOuterAlt(_localctx, 2);
-        state = 35;
+        state = 37;
         match(TOKEN_LPAREN);
-        state = 39;
+        state = 41;
         errorHandler.sync(this);
         _la = tokenStream.LA(1)!;
-        while (((_la) & ~0x3f) == 0 && ((1 << _la) & 29862) != 0) {
-          state = 36;
+        while (((_la) & ~0x3f) == 0 && ((1 << _la) & 59726) != 0) {
+          state = 38;
           datum();
-          state = 41;
+          state = 43;
           errorHandler.sync(this);
           _la = tokenStream.LA(1)!;
         }
-        state = 42;
+        state = 44;
         match(TOKEN_RPAREN);
         break;
       }
@@ -231,11 +240,11 @@ class DatumParser extends Parser {
     enterRule(_localctx, 6, RULE_label);
     try {
       enterOuterAlt(_localctx, 1);
-      state = 45;
-      match(TOKEN_LSQUARE);
-      state = 46;
-      match(TOKEN_SYMBOL);
       state = 47;
+      match(TOKEN_LSQUARE);
+      state = 48;
+      match(TOKEN_SYMBOL);
+      state = 49;
       match(TOKEN_RSQUARE);
     } on RecognitionException catch (re) {
       _localctx.exception = re;
@@ -248,22 +257,23 @@ class DatumParser extends Parser {
   }
 
   static const List<int> _serializedATN = [
-      4,1,27,50,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,1,0,1,0,
-      1,0,3,0,16,8,0,1,1,1,1,1,1,1,1,1,1,1,1,3,1,24,8,1,1,2,1,2,4,2,28,8,
-      2,11,2,12,2,29,1,2,1,2,1,2,1,2,1,2,1,2,5,2,38,8,2,10,2,12,2,41,9,2,
-      1,2,3,2,44,8,2,1,3,1,3,1,3,1,3,1,3,0,0,4,0,2,4,6,0,0,55,0,15,1,0,0,
-      0,2,23,1,0,0,0,4,43,1,0,0,0,6,45,1,0,0,0,8,16,3,2,1,0,9,16,3,4,2,0,
-      10,11,3,6,3,0,11,12,3,0,0,0,12,16,1,0,0,0,13,14,5,10,0,0,14,16,3,0,
-      0,0,15,8,1,0,0,0,15,9,1,0,0,0,15,10,1,0,0,0,15,13,1,0,0,0,16,1,1,0,
-      0,0,17,24,5,2,0,0,18,24,5,12,0,0,19,20,5,1,0,0,20,24,9,0,0,0,21,24,
-      5,13,0,0,22,24,5,14,0,0,23,17,1,0,0,0,23,18,1,0,0,0,23,19,1,0,0,0,
-      23,21,1,0,0,0,23,22,1,0,0,0,24,3,1,0,0,0,25,27,5,5,0,0,26,28,3,0,0,
-      0,27,26,1,0,0,0,28,29,1,0,0,0,29,27,1,0,0,0,29,30,1,0,0,0,30,31,1,
-      0,0,0,31,32,5,11,0,0,32,33,3,0,0,0,33,34,5,6,0,0,34,44,1,0,0,0,35,
-      39,5,5,0,0,36,38,3,0,0,0,37,36,1,0,0,0,38,41,1,0,0,0,39,37,1,0,0,0,
-      39,40,1,0,0,0,40,42,1,0,0,0,41,39,1,0,0,0,42,44,5,6,0,0,43,25,1,0,
-      0,0,43,35,1,0,0,0,44,5,1,0,0,0,45,46,5,7,0,0,46,47,5,14,0,0,47,48,
-      5,8,0,0,48,7,1,0,0,0,5,15,23,29,39,43
+      4,1,28,52,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,1,0,1,0,1,0,1,0,1,0,
+      1,0,1,0,1,0,3,0,18,8,0,1,1,1,1,1,1,1,1,1,1,1,1,3,1,26,8,1,1,2,1,2,
+      4,2,30,8,2,11,2,12,2,31,1,2,1,2,1,2,1,2,1,2,1,2,5,2,40,8,2,10,2,12,
+      2,43,9,2,1,2,3,2,46,8,2,1,3,1,3,1,3,1,3,1,3,0,0,4,0,2,4,6,0,0,58,0,
+      17,1,0,0,0,2,25,1,0,0,0,4,45,1,0,0,0,6,47,1,0,0,0,8,18,3,2,1,0,9,18,
+      3,4,2,0,10,11,3,6,3,0,11,12,3,0,0,0,12,18,1,0,0,0,13,14,5,1,0,0,14,
+      18,3,0,0,0,15,16,5,11,0,0,16,18,3,0,0,0,17,8,1,0,0,0,17,9,1,0,0,0,
+      17,10,1,0,0,0,17,13,1,0,0,0,17,15,1,0,0,0,18,1,1,0,0,0,19,26,5,3,0,
+      0,20,26,5,13,0,0,21,22,5,2,0,0,22,26,9,0,0,0,23,26,5,14,0,0,24,26,
+      5,15,0,0,25,19,1,0,0,0,25,20,1,0,0,0,25,21,1,0,0,0,25,23,1,0,0,0,25,
+      24,1,0,0,0,26,3,1,0,0,0,27,29,5,6,0,0,28,30,3,0,0,0,29,28,1,0,0,0,
+      30,31,1,0,0,0,31,29,1,0,0,0,31,32,1,0,0,0,32,33,1,0,0,0,33,34,5,12,
+      0,0,34,35,3,0,0,0,35,36,5,7,0,0,36,46,1,0,0,0,37,41,5,6,0,0,38,40,
+      3,0,0,0,39,38,1,0,0,0,40,43,1,0,0,0,41,39,1,0,0,0,41,42,1,0,0,0,42,
+      44,1,0,0,0,43,41,1,0,0,0,44,46,5,7,0,0,45,27,1,0,0,0,45,37,1,0,0,0,
+      46,5,1,0,0,0,47,48,5,8,0,0,48,49,5,15,0,0,49,50,5,9,0,0,50,7,1,0,0,
+      0,5,17,25,31,41,45
   ];
 
   static final ATN _ATN =
@@ -316,6 +326,19 @@ class LabelContext extends ParserRuleContext {
   @override
   void exitRule(ParseTreeListener listener) {
     if (listener is DatumListener) listener.exitLabel(this);
+  }
+}
+
+class QuoteContext extends DatumContext {
+  DatumContext? datum() => getRuleContext<DatumContext>(0);
+  QuoteContext(DatumContext ctx) { copyFrom(ctx); }
+  @override
+  void enterRule(ParseTreeListener listener) {
+    if (listener is DatumListener) listener.enterQuote(this);
+  }
+  @override
+  void exitRule(ParseTreeListener listener) {
+    if (listener is DatumListener) listener.exitQuote(this);
   }
 }
 
