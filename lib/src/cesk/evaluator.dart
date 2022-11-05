@@ -78,6 +78,11 @@ Configuration? step(Configuration source) {
         control.cdr.car, source.environment, source.store, source.kontinuation);
   }
 
+  if (control.car == datum.Symbol('begin')) {
+    return Configuration(control.cdr.car, source.environment, source.store,
+        SequenceFrame(control.cdr.cdr, source.kontinuation));
+  }
+
   if (isValue(control.car) && !isFunction(control.car)) {
     return applyKontinuationStep(source);
   }
@@ -124,6 +129,17 @@ applyKontinuationStep(Configuration source) {
     source.store[frame.address] = value;
     return Configuration(
         datum.Null.instance, source.environment, source.store, frame.parent);
+  }
+
+  //sequence kontinuation rule
+  if (source.kontinuation is SequenceFrame) {
+    dynamic frame = source.kontinuation;
+    if (frame.rest == datum.Null.instance) {
+      return Configuration(
+          value, source.environment, source.store, frame.parent);
+    }
+    return Configuration(frame.rest.car, source.environment, source.store,
+        SequenceFrame(frame.rest.cdr, frame.parent));
   }
 
   if (source.kontinuation is ApplicationFrame) {

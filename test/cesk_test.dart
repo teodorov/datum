@@ -188,4 +188,8 @@ void main() {
   test('quote quote', () {
     expect(rep("(quote (1 2 3))"), "(1 2 3)");
   });
+
+  test('set!', () {
+    expect(rep("( (lambda (x) (begin (set! x 2) x )) 1)"), "2");
+  });
 }

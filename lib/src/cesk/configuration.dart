@@ -122,3 +122,8 @@ class SetFrame extends AbstractFrame {
   SetFrame(this.address, super.parent);
   final int address;
 }
+
+class SequenceFrame extends AbstractFrame {
+  SequenceFrame(this.rest, super.parent);
+  final datum.Datum rest;
+}
