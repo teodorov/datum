@@ -2,6 +2,7 @@ import 'dart:core' as core;
 
 import 'package:datum/src/domains/environment.dart';
 import '../evaluation/printer.dart';
+import '../cesk/closure.dart';
 
 abstract class DatumVisitor {
   visitDatum(Datum item);
@@ -19,6 +20,10 @@ abstract class DatumVisitor {
   visitSymbol(Symbol item);
   visitPrimitive(Primitive item);
   visitClosure(Closure item);
+  visitKlosure(Klosure item) {
+    return null;
+  }
+
   visitEnvironment(Environment item);
   visitQuote(Quote item);
 }
@@ -62,6 +67,8 @@ class Pair extends Datum {
 
   get head => car;
   get tail => cdr;
+
+  // set setCdr(Datum datum) => cdr = datum;
 
   @core.override
   core.bool operator ==(other) =>

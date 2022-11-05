@@ -68,7 +68,7 @@ class ANTLR4Tree2Datum extends DatumBaseListener {
 
   @override
   void exitString(StringContext ctx) {
-    map[ctx] = datum.String(ctx.text);
+    map[ctx] = datum.String(ctx.text.substring(1, ctx.text.length - 1));
   }
 
   @override

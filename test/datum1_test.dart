@@ -222,6 +222,8 @@ void main() {
       re('(lambda ((x 1) y) x)');
     } catch (e) {
       expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          'lambda: mandatory arguments not allowed after an optional argument');
     }
   });
 
@@ -230,6 +232,8 @@ void main() {
       re('(lambda (12) x)');
     } catch (e) {
       expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          'lambda formal argument should be a symbol');
     }
   });
 
@@ -238,6 +242,8 @@ void main() {
       re('(lambda 2 x)');
     } catch (e) {
       expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          'lambda formal argument should be a symbol');
     }
   });
 
@@ -246,6 +252,8 @@ void main() {
       re('(2 3)');
     } catch (e) {
       expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          "The first argument of an application should be a closure");
     }
   });
 
