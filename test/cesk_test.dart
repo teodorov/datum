@@ -192,4 +192,8 @@ void main() {
   test('set!', () {
     expect(rep("( (lambda (x) (begin (set! x 2) x )) 1)"), "2");
   });
+
+  test('set!', () {
+    expect(rep("( (lambda (x) (sequence (set! x 2) x )) 1)"), "2");
+  });
 }

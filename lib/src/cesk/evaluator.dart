@@ -78,7 +78,8 @@ Configuration? step(Configuration source) {
         control.cdr.car, source.environment, source.store, source.kontinuation);
   }
 
-  if (control.car == datum.Symbol('begin')) {
+  if (control.car == datum.Symbol('begin') ||
+      control.car == datum.Symbol('sequence')) {
     return Configuration(control.cdr.car, source.environment, source.store,
         SequenceFrame(control.cdr.cdr, source.kontinuation));
   }
