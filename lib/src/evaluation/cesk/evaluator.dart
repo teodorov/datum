@@ -42,6 +42,13 @@ Configuration? step(Configuration source) {
     return applyKontinuationStep(source);
   }
 
+  if (source.control is datum.Symbol) {
+    var value =
+        source.store[source.environment[source.control as datum.Symbol]!];
+    return Configuration(
+        value, source.environment, source.store, source.kontinuation);
+  }
+
   //quote ast node - eval rule
   if (source.control is datum.Quote) {
     return Configuration((source.control as datum.Quote).datum,
@@ -52,6 +59,13 @@ Configuration? step(Configuration source) {
     throw ArgumentError('The control expression should be a List');
   }
   dynamic control = source.control as datum.Pair;
+
+  //lambda
+  if (control.car == datum.Symbol('lambda')) {
+    var closure = lambda2closure(control.cdr, source.environment);
+    return Configuration(
+        closure, source.environment, source.store, source.kontinuation);
+  }
 
   //conditional evaluation
   // guard=[ source.control.car = 'if ] / action={ eval cond, push IfFrame }
@@ -102,7 +116,7 @@ Configuration? step(Configuration source) {
 }
 
 applyKontinuationStep(Configuration source) {
-  var value = evalValue(source.control, source.environment, source.store);
+  var value = source.control;
 
   //apply the halt continuation, when the stack is empty
   if (source.kontinuation is EndFrame) {
@@ -260,10 +274,7 @@ evalValue(
   if (expression is datum.String) {
     return expression;
   }
-  // //symbol returns the value from the store
-  if (expression is datum.Symbol) {
-    return store[environment[expression]!];
-  }
+
   //closure is self-evaluating
   if (expression is Klosure) {
     return expression;
@@ -273,9 +284,6 @@ evalValue(
     return expression;
   }
 
-  if (expression is datum.Pair && expression.car == datum.Symbol('lambda')) {
-    return lambda2closure(expression.cdr, environment);
-  }
   return expression;
 }
 
