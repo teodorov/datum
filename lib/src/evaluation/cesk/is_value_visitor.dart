@@ -1,4 +1,3 @@
-import 'package:datum/src/domains/environment.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
 
 import 'closure.dart';
@@ -24,11 +23,6 @@ class IsValueVisitor extends datum.DatumVisitor {
   }
 
   @override
-  visitClosure(datum.Closure item) {
-    return true;
-  }
-
-  @override
   visitKlosure(Klosure item) {
     return true;
   }
@@ -50,11 +44,6 @@ class IsValueVisitor extends datum.DatumVisitor {
 
   @override
   visitDottedPair(datum.DottedPair item) {
-    return false;
-  }
-
-  @override
-  visitEnvironment(Environment item) {
     return false;
   }
 

@@ -1,8 +1,7 @@
 import 'dart:core' as core;
 
-import 'package:datum/src/domains/environment.dart';
 import '../evaluation/printer.dart';
-import '../cesk/closure.dart';
+import '../evaluation/cesk/closure.dart';
 
 abstract class DatumVisitor {
   visitDatum(Datum item);
@@ -19,12 +18,10 @@ abstract class DatumVisitor {
   visitString(String item);
   visitSymbol(Symbol item);
   visitPrimitive(Primitive item);
-  visitClosure(Closure item);
   visitKlosure(Klosure item) {
     return null;
   }
 
-  visitEnvironment(Environment item);
   visitQuote(Quote item);
 }
 
@@ -39,24 +36,6 @@ abstract class Datum {
       return '(${accept(DatumPrinter())})';
     }
     return '${accept(DatumPrinter())}';
-  }
-}
-
-//function value
-class Closure extends Datum {
-  Closure(this.code, this.formals, this.numberOfMandatoryArguments,
-      this.environment, this.isVariadic);
-
-  final Environment environment;
-  final Datum code;
-  final core.List<Datum>
-      formals; //Datum can be only Symbol and (optional argument) Pair where car is Symbol and cdr is initial expression
-  final core.bool isVariadic;
-  final core.int numberOfMandatoryArguments;
-
-  @core.override
-  accept(visitor) {
-    return visitor.visitClosure(this);
   }
 }
 

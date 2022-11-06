@@ -1,6 +1,5 @@
 import 'package:datum/src/model/datum_model.dart' as datum;
-import 'package:datum/src/domains/environment.dart';
-import 'package:datum/src/cesk/closure.dart';
+import 'package:datum/src/evaluation/cesk/closure.dart';
 
 String printer(datum.Datum e) {
   return e.toString();
@@ -91,11 +90,6 @@ class DatumPrinter extends datum.DatumVisitor {
   }
 
   @override
-  visitClosure(datum.Closure item) {
-    return '(closure ${item.code.accept(this)} ${item.environment.accept(this)})';
-  }
-
-  @override
   visitKlosure(Klosure item) {
     printElement(e) {
       return e is datum.Pair ? '(${e.accept(this)})' : '${e.accept(this)}';
@@ -107,11 +101,6 @@ class DatumPrinter extends datum.DatumVisitor {
             ? printElement(element)
             : '$previousValue ${printElement(element)}');
     return '(klosure ρ [formals]=${item.isVariadic && item.formals.length == 1 ? formals : '($formals)'} [code]=${item.code.accept(this)} [numberOfMandatoryArguments]=${item.numberOfMandatoryArguments} [isVariadic]=${item.isVariadic})';
-  }
-
-  @override
-  visitEnvironment(Environment item) {
-    return '(environment (${item.entries.fold('', (previousValue, element) => '$previousValue (${element.key} . ${element.value.accept(this)})')}))';
   }
 
   @override

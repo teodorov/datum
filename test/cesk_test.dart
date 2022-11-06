@@ -1,5 +1,4 @@
-import 'package:datum/src/cesk/closure.dart';
-import 'package:datum/src/cesk/evaluator.dart';
+import 'package:datum/src/evaluation/cesk/evaluator.dart';
 import 'package:test/test.dart';
 
 void main() {

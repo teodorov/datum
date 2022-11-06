@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:datum/src/cesk/closure.dart';
+import 'package:datum/src/evaluation/cesk/closure.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
 
 class Configuration {

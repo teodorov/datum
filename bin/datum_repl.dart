@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:datum/src/domains/primitives.dart';
-import 'package:datum/src/evaluation/reader.dart';
-import 'package:datum/src/evaluation/evaluator.dart';
-import 'package:datum/src/evaluation/printer.dart';
+import 'package:datum/src/evaluation/cesk/evaluator.dart' as datum;
 
 void main(List<String> arguments) {
   print("Welcome to the datum REPL. Press 'q' to quit");
@@ -12,8 +9,6 @@ void main(List<String> arguments) {
     var exp = stdin.readLineSync(encoding: utf8);
     if (exp == null || exp == "") continue;
     if (exp == 'q') break;
-    var reader = DatumReader().parseString;
-    var environment = PrimitiveEnvironment(null).create();
-    print(printer(eval(reader(exp), environment)));
+    print(datum.print(datum.eval(datum.read(exp))));
   } while (true);
 }
