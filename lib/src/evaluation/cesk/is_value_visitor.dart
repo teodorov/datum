@@ -64,6 +64,9 @@ class IsValueVisitor extends datum.DatumVisitor {
 
   @override
   visitPair(datum.Pair item) {
+    if (item.car == datum.Symbol('error')) {
+      return true;
+    }
     return false;
   }
 

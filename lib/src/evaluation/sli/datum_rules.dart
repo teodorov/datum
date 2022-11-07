@@ -1,6 +1,5 @@
 import 'package:datum/src/evaluation/cesk/closure.dart';
 import 'package:datum/src/evaluation/cesk/configuration.dart';
-import 'package:datum/src/evaluation/cesk/evaluator.dart';
 import 'package:datum/src/evaluation/cesk/primitives.dart';
 import 'package:datum/src/evaluation/sli/rule.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
@@ -45,6 +44,7 @@ rules() {
         (c) => c.control == datum.Boolean.dTrue, ifKActionTrue),
     Rule.kontinuation('k: if (false)', IfFrame,
         (c) => c.control == datum.Boolean.dFalse, ifKActionFalse),
+    Rule.kontinuation('k: set!', SetFrame, (c) => true, setKAction),
     Rule.kontinuation(
         'k-sequence',
         SequenceFrame,
@@ -76,6 +76,9 @@ quoteSymbolAction(c) =>
 ifAction(c) => Configuration(c.control.cdr.car, c.environment, c.store,
     IfFrame(c.control.cdr.cdr.car, c.control.cdr.cdr.cdr.car, c.kontinuation));
 
+setAction(c) => Configuration(c.control.cdr.cdr.car, c.environment, c.store,
+    SetFrame(c.environment[c.control.cdr.car], c.kontinuation));
+
 //sequence evaluation rule
 sequenceGuard(c) =>
     c.control is datum.Pair &&
@@ -101,8 +104,13 @@ ifKActionTrue(c) => Configuration(
 ifKActionFalse(c) => Configuration(
     c.kontinuation.falseBranch, c.environment, c.store, c.kontinuation.parent);
 //set!
-setAction(c) => Configuration(c.control.cdr.cdr.car, c.environment, c.store,
-    SetFrame(c.environment[c.control.cdr.car], c.kontinuation));
+
+setKAction(c) {
+  dynamic frame = c.kontinuation;
+  c.store[frame.address] = c.control;
+  return Configuration(
+      datum.Null.instance, c.environment, c.store, frame.parent);
+}
 
 //sequence
 sequenceResultKAction(c) =>
@@ -150,8 +158,9 @@ applicationDefaultKGuard(c) {
   var closure = c.kontinuation.closure ?? c.control;
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
-  return c.kontinuation.expressions == datum.Null.instance &&
-      numberOfDirectArguments > c.kontinuation.values.length + 1;
+  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
+  return (frame.expressions == datum.Null.instance) &&
+      (numberOfDirectArguments > (frame.values.length + 1));
 }
 
 applicationDefaultKAction(c) {
@@ -170,6 +179,12 @@ applicationDefaultKAction(c) {
           "Too many arguments: expected ${closure.formals.length} but given more than ${c.continuation.values.length} arguments");
     }
   }
+
+  if (c.kontinuation.values.length < closure.numberOfMandatoryArguments) {
+    throw ArgumentError(
+        "Not enough arguments: expected ${closure.numberOfMandatoryArguments} but given only ${c.kontinuation.values.length} arguments");
+  }
+
   //prepare the optional arguments
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
@@ -194,8 +209,10 @@ applicationEvalKGuard(c) {
   var closure = c.kontinuation.closure ?? c.control;
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
-  return c.kontinuation.expressions == datum.Null.instance &&
-      numberOfDirectArguments <= c.kontinuation.values.length;
+  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
+  var condition = (frame.expressions == datum.Null.instance) &&
+      (numberOfDirectArguments <= frame.values.length + 1);
+  return condition;
 }
 
 applicationEvalKAction(c) {
@@ -211,10 +228,16 @@ applicationEvalKAction(c) {
     if (!closure.isVariadic &&
         c.kontinuation.values.length > closure.formals.length) {
       throw ArgumentError(
-          "Too many arguments: expected ${closure.formals.length} but given more than ${c.continuation.values.length} arguments");
+          "Too many arguments: expected ${closure.formals.length} but given more than ${c.kontinuation.values.length} arguments");
     }
   }
+
   ApplicationFrame frame = c.kontinuation;
+  if (frame.values.length < closure.numberOfMandatoryArguments) {
+    throw ArgumentError(
+        "Not enough arguments: expected ${closure.numberOfMandatoryArguments} but given only ${frame.values.length} arguments");
+  }
+
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
   Environment applicationEnvironment = frame.environment.create();

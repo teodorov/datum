@@ -1,3 +1,4 @@
+import 'package:datum/src/evaluation/cesk/closure.dart';
 import 'package:datum/src/evaluation/cesk/configuration.dart';
 import 'package:datum/src/evaluation/cesk/is_value_visitor.dart';
 import 'package:datum/src/evaluation/reader.dart';
@@ -12,16 +13,16 @@ initial() {}
 
 actions(c) {
   var theRules = rules();
-  if (isValue(c.control)) {
-    return theRules['kont']
-        .where((r) =>
-            (c.kontinuation.runtimeType == (r as KontinuationRule).frameType) &&
-            r.guard.code(c) as bool)
-        .map((r) => r.action);
+  if (isValue(c.control) ||
+      (c.control is datum.Pair &&
+          isValue(c.control.car) &&
+          !isFunction(c.control.car))) {
+    return theRules['kont'].where((r) =>
+        (c.kontinuation.runtimeType == (r as KontinuationRule).frameType) &&
+        r.guard.code(c) as bool); //.map((r) => r.action);
   }
   return theRules['eval']
-      .where((r) => r.guard.code(c) as bool)
-      .map((r) => r.action);
+      .where((r) => r.guard.code(c) as bool); //.map((r) => r.action);
 }
 
 Configuration inject(datum.Datum expression) =>
@@ -35,7 +36,7 @@ datum.Datum eval(datum.Datum expression) {
     if (enabled.length > 1) {
       throw AssertionError('Non-determinism unexpected');
     }
-    var target = enabled.first.code(source);
+    var target = enabled.first.action.code(source);
     if (target == source) {
       return target.control;
     }
@@ -43,4 +44,14 @@ datum.Datum eval(datum.Datum expression) {
   }
   //we got stuck
   return datum.Null.instance;
+}
+
+isFunction(expression) {
+  if (expression is Klosure) {
+    return true;
+  }
+  if (expression is datum.Pair && expression.car == datum.Symbol('lambda')) {
+    return true;
+  }
+  return false;
 }
