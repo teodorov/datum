@@ -9,11 +9,21 @@ class Rule {
 
   final Guard guard;
   final Action action;
+
+  @override
+  String toString() {
+    return 'ERule[${guard.name}]';
+  }
 }
 
 class KontinuationRule extends Rule {
   KontinuationRule(this.frameType, super.guard, super.action);
-  var frameType;
+  Type frameType;
+
+  @override
+  String toString() {
+    return 'KRule[${guard.name}]';
+  }
 }
 
 class Guard {

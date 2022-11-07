@@ -28,6 +28,11 @@ class Configuration {
 
   @override
   int get hashCode => Object.hash(control, environment, store, kontinuation);
+
+  @override
+  String toString() {
+    return '{C: $control, E: $environment, S: $store, K: $kontinuation}';
+  }
 }
 
 class Environment extends datum.Datum {
@@ -92,6 +97,10 @@ class Frame {}
 
 class EndFrame extends Frame {
   EndFrame();
+  @override
+  String toString() {
+    return 'EndFrame';
+  }
 }
 
 class DoneFrame extends Frame {
@@ -110,20 +119,40 @@ class ApplicationFrame extends AbstractFrame {
   final List<datum.Datum> values;
   final datum.Datum expressions;
   final Environment environment;
+
+  @override
+  String toString() {
+    return 'AppFrame, $parent';
+  }
 }
 
 class IfFrame extends AbstractFrame {
   IfFrame(this.trueBranch, this.falseBranch, super.parent);
   final datum.Datum trueBranch;
   final datum.Datum falseBranch;
+
+  @override
+  String toString() {
+    return 'IfFrame, $parent';
+  }
 }
 
 class SetFrame extends AbstractFrame {
   SetFrame(this.address, super.parent);
   final int address;
+
+  @override
+  String toString() {
+    return 'SetFrame, $parent';
+  }
 }
 
 class SequenceFrame extends AbstractFrame {
   SequenceFrame(this.rest, super.parent);
   final datum.Datum rest;
+
+  @override
+  String toString() {
+    return 'SequenceFrame, $parent';
+  }
 }

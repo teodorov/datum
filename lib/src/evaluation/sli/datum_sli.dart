@@ -9,9 +9,30 @@ import 'package:datum/src/model/datum_model.dart' as datum;
 read(String expression) => DatumReader().parseString(expression);
 print(datum.Datum expression) => expression.toString();
 
+class DatumSLI {
+  DatumSLI(this.expression);
+  datum.Datum expression;
+  late DatumSTR semantics = DatumSTR(this);
+}
+
+class DatumSTR {
+  DatumSTR(this.parent);
+  DatumSLI parent;
+
+  initial() {
+    return [inject(parent.expression)];
+  }
+
+  actions(c) {
+    return getActions(c);
+  }
+
+  execute(a, c) => [a.action.code(c)];
+}
+
 initial() {}
 
-actions(c) {
+getActions(c) {
   var theRules = rules();
   if (isValue(c.control) ||
       (c.control is datum.Pair &&
@@ -32,7 +53,7 @@ datum.Datum eval(datum.Datum expression) {
   var initial = inject(expression);
   Configuration? source = initial;
   while (source != null) {
-    var enabled = actions(source);
+    var enabled = getActions(source);
     if (enabled.length > 1) {
       throw AssertionError('Non-determinism unexpected');
     }
