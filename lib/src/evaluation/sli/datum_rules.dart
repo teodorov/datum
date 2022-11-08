@@ -4,6 +4,17 @@ import 'package:datum/src/evaluation/cesk/primitives.dart';
 import 'package:datum/src/evaluation/sli/rule.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
 
+// define symbol exp
+// E <(define symbol exp), ρ, σ, κ >  ⟶  E <exp, ρ, σ, DefFrame(symbol, κ)>
+//      where symbol is Symbol
+
+// define function
+// E <(define (symbol args) body), ρ, σ, κ> ⟶ E <(lambda args body), ρ, σ, DefFrame(symbol, κ)>
+//      where symbol is Symbol
+
+// define kontinuation
+// K <v, ρ, σ, DefFrame(symbol, κ)> ⟶ E <null, ρ[symbol ↦ a], σ[a ↦ v], k>
+
 rules() {
   List<Rule> erules = [
     Rule.eval('done', (c) => c.kontinuation is DoneFrame, (c) => c),
@@ -37,6 +48,28 @@ rules() {
         'application',
         (c) => c.control is datum.Pair && !primitiveForm(c.control.car),
         applicationAction),
+// define symbol exp
+// E <('define symbol exp), ρ, σ, κ >  ⟶  E <exp, ρ, σ, DefFrame(symbol, κ)>
+//      where symbol is Symbol
+    Rule.eval(
+        'define symbol exp',
+        (c) =>
+            c.control is datum.Pair &&
+            c.control.car == datum.Symbol('define') &&
+            c.control.cdr.car is datum.Symbol,
+        defineSymbolAction),
+
+// define function
+// E <(define (symbol args) body), ρ, σ, κ> ⟶ E <(lambda args body), ρ, σ, DefFrame(symbol, κ)>
+//      where symbol is Symbol
+    Rule.eval(
+        'define symbol exp',
+        (c) =>
+            c.control is datum.Pair &&
+            c.control.car == datum.Symbol('define') &&
+            c.control.cdr.car is datum.Pair &&
+            c.control.cdr.car.car is datum.Symbol,
+        defineFunctionAction),
   ];
   List<Rule> krules = [
     Rule.kontinuation('k: end', EndFrame, (c) => true, endKAction),
@@ -59,12 +92,30 @@ rules() {
         applicationDefaultKGuard, applicationDefaultKAction),
     Rule.kontinuation('k-application eval code', ApplicationFrame,
         applicationEvalKGuard, applicationEvalKAction),
+
+// define kontinuation
+// K <v, ρ, σ, DefFrame(symbol, κ)> ⟶ E <null, ρ[symbol ↦ a], σ[a ↦ v], k>
+    Rule.kontinuation('k-define', DefFrame, (c) => true, (c) {
+      int idx = c.store.length;
+      c.environment.define(c.kontinuation.symbol, idx);
+      c.store.add(c.control);
+      return Configuration(
+          datum.Null.instance, c.environment, c.store, c.kontinuation.parent);
+    })
   ];
   return {'eval': erules, 'kont': krules};
 }
 
 primitiveForm(item) {
-  var primitives = ['if', 'quote', 'lambda', 'set!', 'begin', 'sequence'];
+  var primitives = [
+    'if',
+    'quote',
+    'lambda',
+    'set!',
+    'begin',
+    'sequence',
+    'define'
+  ];
   return primitives.where((c) => item == datum.Symbol(c)).isNotEmpty;
 }
 
@@ -118,6 +169,16 @@ sequenceResultKAction(c) =>
 
 sequenceRestKAction(c) => Configuration(c.kontinuation.rest.car, c.environment,
     c.store, SequenceFrame(c.kontinuation.rest.cdr, c.kontinuation.parent));
+
+defineSymbolAction(c) => Configuration(c.control.cdr.cdr.car, c.environment,
+    c.store, DefFrame(c.control.cdr.car, c.kontinuation));
+
+defineFunctionAction(c) {
+  var function = datum.Pair(datum.Symbol('lambda'),
+      datum.Pair(c.control.cdr.car.cdr, c.control.cdr.cdr));
+  return Configuration(function, c.environment, c.store,
+      DefFrame(c.control.cdr.car.car, c.kontinuation));
+}
 
 //application
 //eval arguments

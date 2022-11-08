@@ -46,11 +46,13 @@ getActions(c) {
       .where((r) => r.guard.code(c) as bool); //.map((r) => r.action);
 }
 
+Configuration injecte(datum.Datum expression, environment, store) =>
+    Configuration(expression, environment, store, EndFrame());
 Configuration inject(datum.Datum expression) =>
     Configuration(expression, Environment(), [], EndFrame());
 
-datum.Datum eval(datum.Datum expression) {
-  var initial = inject(expression);
+datum.Datum eval(datum.Datum expression, env, List<datum.Datum> store) {
+  var initial = injecte(expression, env, store);
   Configuration? source = initial;
   while (source != null) {
     var enabled = getActions(source);

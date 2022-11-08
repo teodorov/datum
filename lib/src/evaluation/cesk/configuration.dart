@@ -156,3 +156,13 @@ class SequenceFrame extends AbstractFrame {
     return 'SequenceFrame, $parent';
   }
 }
+
+class DefFrame extends AbstractFrame {
+  DefFrame(this.symbol, super.parent);
+  final datum.Symbol symbol;
+
+  @override
+  String toString() {
+    return 'DefFrame, $parent';
+  }
+}

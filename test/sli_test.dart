@@ -195,4 +195,12 @@ void main() {
   test('set!', () {
     expect(rep("( (lambda (x) (sequence (set! x 2) x )) 1)"), "2");
   });
+
+  test('define symbol', () {
+    expect(rep(" (sequence (define x 2) x) "), '2');
+  });
+
+  test('define function', () {
+    expect(rep(" (sequence (define (f x) x) (f 3)) "), '3');
+  });
 }

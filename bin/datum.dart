@@ -3,10 +3,13 @@ import 'dart:io';
 // import 'package:datum/src/evaluation/cesk/evaluator.dart' as datum;
 import 'package:datum/src/evaluation/cesk/configuration.dart';
 import 'package:datum/src/evaluation/sli/datum_sli.dart' as datum;
+import 'package:datum/src/model/datum_model.dart' as d;
 import 'package:datum/src/evaluation/sli/rule.dart';
 
 void main(List<String> arguments) {
   print("Welcome to the datum REPL. Press 'q' to quit");
+  var env = Environment();
+  List<d.Datum> store = [];
   do {
     stdout.write("datum> ");
     var exp = stdin.readLineSync(encoding: utf8);
@@ -16,7 +19,7 @@ void main(List<String> arguments) {
       debugLoop();
       continue;
     }
-    print(datum.print(datum.eval(datum.read(exp))));
+    print(datum.print(datum.eval(datum.read(exp), env, store)));
   } while (true);
 }
 
