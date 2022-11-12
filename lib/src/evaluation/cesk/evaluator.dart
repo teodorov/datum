@@ -112,7 +112,7 @@ Configuration? step(Configuration source) {
       source.environment,
       source.store,
       ApplicationFrame(
-          null, [], arguments, source.environment, source.kontinuation));
+          null, [], arguments, source.environment, false, source.kontinuation));
 }
 
 applyKontinuationStep(Configuration source) {
@@ -187,6 +187,7 @@ applyKontinuationStep(Configuration source) {
               frame.values,
               (frame.expressions as datum.Pair).cdr!,
               frame.environment,
+              false,
               frame.parent));
     }
 
@@ -211,7 +212,7 @@ applyKontinuationStep(Configuration source) {
           source.environment,
           source.store,
           ApplicationFrame(closure, frame.values, defaultExpressions.cdr!,
-              frame.environment, frame.parent));
+              frame.environment, false, frame.parent));
     }
 
     //create the application environment to bind the formals to the actuals

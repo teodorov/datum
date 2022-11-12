@@ -92,6 +92,12 @@ rules() {
         applicationDefaultKGuard, applicationDefaultKAction),
     Rule.kontinuation('k-application eval code', ApplicationFrame,
         applicationEvalKGuard, applicationEvalKAction),
+    Rule.kontinuation(
+        'k-application done',
+        ApplicationFrame,
+        (c) => c.kontinuation.isDone,
+        (c) => Configuration(c.control, c.kontinuation.environment, c.store,
+            c.kontinuation.parent)),
 
 // define kontinuation
 // K <v, ρ, σ, DefFrame(symbol, κ)> ⟶ E <null, ρ[symbol ↦ a], σ[a ↦ v], k>
@@ -140,8 +146,12 @@ sequenceAction(c) => Configuration(c.control.cdr.car, c.environment, c.store,
     SequenceFrame(c.control.cdr.cdr, c.kontinuation));
 
 //application evaluation rule
-applicationAction(c) => Configuration(c.control.car, c.environment, c.store,
-    ApplicationFrame(null, [], c.control.cdr, c.environment, c.kontinuation));
+applicationAction(c) => Configuration(
+    c.control.car,
+    c.environment,
+    c.store,
+    ApplicationFrame(
+        null, [], c.control.cdr, c.environment, false, c.kontinuation));
 
 //kontinuation rules
 //end
@@ -211,6 +221,7 @@ applicationArgsKAction(c) {
           c.kontinuation.values,
           (c.kontinuation.expressions as datum.Pair).cdr!,
           c.kontinuation.environment,
+          false,
           c.kontinuation.parent));
 }
 
@@ -262,7 +273,7 @@ applicationDefaultKAction(c) {
       c.environment,
       c.store,
       ApplicationFrame(closure, c.kontinuation.values, defaultExpressions.cdr!,
-          c.kontinuation.environment, c.kontinuation.parent));
+          c.kontinuation.environment, false, c.kontinuation.parent));
 }
 
 //eval code in the created environment
@@ -272,7 +283,8 @@ applicationEvalKGuard(c) {
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
   ApplicationFrame frame = c.kontinuation as ApplicationFrame;
   var condition = (frame.expressions == datum.Null.instance) &&
-      (numberOfDirectArguments <= frame.values.length + 1);
+      (numberOfDirectArguments <= frame.values.length + 1) &&
+      (!frame.isDone);
   return condition;
 }
 
@@ -301,7 +313,7 @@ applicationEvalKAction(c) {
 
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
-  Environment applicationEnvironment = frame.environment.create();
+  Environment applicationEnvironment = closure.environment.create();
   int i;
   for (i = 0; i < frame.values.length; i++) {
     if (closure.isVariadic && i == numberOfDirectArguments) {
@@ -333,5 +345,9 @@ applicationEvalKAction(c) {
   }
 
   return Configuration(
-      closure.code, applicationEnvironment, c.store, frame.parent);
+      closure.code,
+      applicationEnvironment,
+      c.store,
+      ApplicationFrame(closure, frame.values, frame.expressions,
+          frame.environment, true, frame.parent));
 }

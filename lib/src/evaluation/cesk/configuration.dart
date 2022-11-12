@@ -114,11 +114,12 @@ abstract class AbstractFrame extends Frame {
 
 class ApplicationFrame extends AbstractFrame {
   ApplicationFrame(this.closure, this.values, this.expressions,
-      this.environment, super.parent);
+      this.environment, this.isDone, super.parent);
   final Klosure? closure;
   final List<datum.Datum> values;
   final datum.Datum expressions;
   final Environment environment;
+  final bool isDone;
 
   @override
   String toString() {

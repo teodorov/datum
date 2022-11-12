@@ -1,8 +1,9 @@
+import 'package:datum/src/evaluation/cesk/configuration.dart';
 import 'package:datum/src/evaluation/sli/datum_sli.dart';
 import 'package:test/test.dart';
 
 void main() {
-  rep(String expression) => print(eval(read(expression)));
+  rep(String expression) => print(eval(read(expression), Environment(), []));
 
   test('null', () {
     expect(rep("()"), '()');
@@ -202,5 +203,18 @@ void main() {
 
   test('define function', () {
     expect(rep(" (sequence (define (f x) x) (f 3)) "), '3');
+  });
+
+  test('inner lambda', () {
+    expect(rep(''' 
+    (
+      ((lambda (e1)
+        (lambda (e2)
+          e1
+        )
+      )
+      3) 2
+    )
+    '''), '3');
   });
 }
