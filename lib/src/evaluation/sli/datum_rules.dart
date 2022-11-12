@@ -17,7 +17,6 @@ import 'package:datum/src/model/datum_model.dart' as datum;
 
 rules() {
   List<Rule> erules = [
-    Rule.eval('done', (c) => c.kontinuation is DoneFrame, (c) => c),
     Rule.eval(
         'symbol',
         (c) => c.control is datum.Symbol,
