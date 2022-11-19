@@ -35,7 +35,8 @@ begin ≜
     ⟨ v, ρ, σ, (SequenceFrame (e₁ e₂) κ) ⟩ ⟶ ⟨ e₁, ρ, σ, (SequenceFrame e₂ κ) ⟩
 
 application ≜ 
-    ⟨ (e₁ e₂), ρ, σ, κ ⟩ ⟶ ⟨ e₁, ρ, σ, (ArgumentsFrame () () e₂ κ) ⟩
+    ⟨ (e₁ e₂), ρ, σ, κ ⟩ ⟶ ⟨ e₁, ρ, σ, (ApplicationFrame null () e₂ ρ #f κ) ⟩
+        where !primitiveForm(e₁) 
 
     ⟨ (closure (() b) ρ'), ρ, σ, (ArgumentsFrame () () κ) ⟩ ⟶ ⟨ b, ρ', σ, (CallFrame ρ κ) ⟩
 

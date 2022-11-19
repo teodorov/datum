@@ -141,8 +141,8 @@ sequenceGuard(c) =>
     (c.control.car == datum.Symbol('begin') ||
         c.control.car == datum.Symbol('sequence'));
 
-sequenceAction(c) => Configuration(c.control.cdr.car, c.environment, c.store,
-    SequenceFrame(c.control.cdr.cdr, c.kontinuation));
+sequenceAction(c) => Configuration(c.control.cdr.car, c.environment.create(),
+    c.store, SequenceFrame(c.control.cdr.cdr, c.kontinuation));
 
 //application evaluation rule
 applicationAction(c) => Configuration(
@@ -173,8 +173,8 @@ setKAction(c) {
 }
 
 //sequence
-sequenceResultKAction(c) =>
-    Configuration(c.control, c.environment, c.store, c.kontinuation.parent);
+sequenceResultKAction(c) => Configuration(
+    c.control, c.environment.parent, c.store, c.kontinuation.parent);
 
 sequenceRestKAction(c) => Configuration(c.kontinuation.rest.car, c.environment,
     c.store, SequenceFrame(c.kontinuation.rest.cdr, c.kontinuation.parent));
