@@ -33,6 +33,13 @@ class Configuration {
   String toString() {
     return '{C: $control, E: $environment, S: $store, K: $kontinuation}';
   }
+
+  Map<String, dynamic> toJson() => {
+        'C': control.toString(),
+        'E': environment.toJson(),
+        'S': store.map((e) => e.toString()).toList(),
+        'K': kontinuation.toString(),
+      };
 }
 
 class Environment extends datum.Datum {
@@ -90,6 +97,14 @@ class Environment extends datum.Datum {
   @override
   String toString() {
     return 'environment ${_bindings.toString()}';
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> dd =
+        _bindings.map((key, value) => MapEntry(key.literal, value));
+    if (parent == null) return dd;
+    dd['parent'] = parent!.toJson();
+    return dd;
   }
 }
 
