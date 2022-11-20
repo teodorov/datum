@@ -1,3 +1,4 @@
+import 'package:datum/src/evaluation/cesk/configuration.dart';
 import 'package:datum/src/model/datum_model.dart' as datum;
 import 'closure.dart';
 
@@ -42,4 +43,40 @@ lambda2closure(args, environment) {
 
   var body = args.cdr.car;
   return Klosure(body, formals, numberOfMandatoryArguments, environment, false);
+}
+
+define(e, s, datum.Primitive primitive) {
+  e.define(primitive.name, s.length);
+  s.add(primitive);
+}
+
+createPrimitiveEnvironment(e, List<datum.Datum> s) {
+  define(e, s, datum.Primitive('<=', _lessThanOrEqual));
+  define(e, s, datum.Primitive('-', _minus));
+  define(e, s, datum.Primitive('*', _multiply));
+}
+
+_lessThanOrEqual(args) {
+  final lhs = args[0].value;
+  final rhs = args[1].value;
+  return datum.Boolean.fromDart(lhs.compareTo(rhs) <= 0);
+}
+
+_minus(args) {
+  var value = args[0].value;
+  if (args.length == 1) {
+    return datum.Number.fromDart(-value);
+  }
+  for (int idx = 1; idx < args.length; idx++) {
+    value -= args[idx].value;
+  }
+  return datum.Number.fromDart(value);
+}
+
+_multiply(args) {
+  var value = args[0].value;
+  for (var idx = 1; idx < args.length; idx++) {
+    value *= args[idx].value;
+  }
+  return datum.Number.fromDart(value);
 }

@@ -1,7 +1,7 @@
 import 'package:datum/src/model/datum_model.dart' as datum;
 import 'configuration.dart';
 
-class Klosure extends datum.Datum {
+class Klosure extends datum.Applicable {
   Klosure(this.code, this.formals, this.numberOfMandatoryArguments,
       this.environment, this.isVariadic);
 

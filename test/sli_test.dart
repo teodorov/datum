@@ -1,5 +1,7 @@
 import 'package:datum/src/evaluation/cesk/configuration.dart';
+import 'package:datum/src/evaluation/cesk/primitives.dart';
 import 'package:datum/src/evaluation/sli/datum_sli.dart';
+import 'package:datum/src/model/datum_model.dart' as d;
 import 'package:test/test.dart';
 
 void main() {
@@ -216,5 +218,40 @@ void main() {
       3) 2
     )
     '''), '3');
+  });
+
+  test('primitive <=', () {
+    try {
+      rep('(<= 2 3)');
+    } catch (e) {
+      expect(e, isArgumentError);
+      expect((e as ArgumentError).message,
+          "<= is not defined in the lexical scope");
+    }
+  });
+
+  repp(String expression) {
+    var e = Environment();
+    List<d.Datum> s = [];
+    createPrimitiveEnvironment(e, s);
+    return print(eval(read(expression), e.create(), s));
+  }
+
+  test('primitive <=p', () {
+    expect(repp('(<= 2 3)'), 'true');
+  });
+
+  test('factorial', () {
+    expect(repp('''
+    (sequence
+    (define (factorial n)
+      (if (<= n 1) 
+        1
+        (* n (factorial (- n 1)))
+      )
+    )
+    (factorial 20)
+    )
+'''), "2432902008176640000");
   });
 }

@@ -198,9 +198,9 @@ applicationArgsKGuard(c) {
 applicationArgsKAction(c) {
   var closure = c.kontinuation.closure;
   if (closure == null) {
-    if (c.control is! Klosure) {
+    if (c.control is! Klosure && c.control is! datum.Primitive) {
       throw ArgumentError(
-          "The first argument of an application should be a closure");
+          "The first argument of an application should be a closure or primitive");
     }
     closure = c.control;
   } else {
@@ -226,10 +226,12 @@ applicationArgsKAction(c) {
 
 //eval defaults for missing optional arguments
 applicationDefaultKGuard(c) {
+  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
+  if (frame.expressions != datum.Null.instance) return false;
   var closure = c.kontinuation.closure ?? c.control;
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
-  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
+
   return (frame.expressions == datum.Null.instance) &&
       (numberOfDirectArguments > (frame.values.length + 1));
 }
@@ -277,13 +279,13 @@ applicationDefaultKAction(c) {
 
 //eval code in the created environment
 applicationEvalKGuard(c) {
+  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
+  if (frame.expressions != datum.Null.instance) return false;
   var closure = c.kontinuation.closure ?? c.control;
   var numberOfDirectArguments =
       closure.isVariadic ? closure.formals.length - 1 : closure.formals.length;
-  ApplicationFrame frame = c.kontinuation as ApplicationFrame;
-  var condition = (frame.expressions == datum.Null.instance) &&
-      (numberOfDirectArguments <= frame.values.length + 1) &&
-      (!frame.isDone);
+  var condition = //(frame.expressions == datum.Null.instance) &&
+      (numberOfDirectArguments <= frame.values.length + 1) && (!frame.isDone);
   return condition;
 }
 
@@ -305,6 +307,12 @@ applicationEvalKAction(c) {
   }
 
   ApplicationFrame frame = c.kontinuation;
+
+  if (closure is datum.Primitive) {
+    var result = closure.primitive(frame.values);
+    return Configuration(result, frame.environment, c.store, frame.parent);
+  }
+
   if (frame.values.length < closure.numberOfMandatoryArguments) {
     throw ArgumentError(
         "Not enough arguments: expected ${closure.numberOfMandatoryArguments} but given only ${frame.values.length} arguments");

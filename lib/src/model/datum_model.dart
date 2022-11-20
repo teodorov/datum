@@ -1,5 +1,7 @@
 import 'dart:core' as core;
 
+import 'package:datum/src/evaluation/cesk/configuration.dart';
+
 import '../evaluation/printer.dart';
 import '../evaluation/cesk/closure.dart';
 
@@ -192,8 +194,11 @@ class Symbol extends Literal {
   }
 }
 
-class Primitive extends Datum {
-  Primitive._internal(this.name, this.primitive);
+abstract class Applicable extends Datum {}
+
+class Primitive extends Klosure {
+  Primitive._internal(this.name, this.primitive)
+      : super(Null.instance, [Symbol('args')], 0, Environment(), true);
 
   factory Primitive(core.String name, primitive) {
     return Primitive._internal(Symbol(name), primitive);

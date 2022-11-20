@@ -72,7 +72,7 @@ class IsValueVisitor extends datum.DatumVisitor {
 
   @override
   visitPrimitive(datum.Primitive item) {
-    return false;
+    return true;
   }
 
   @override
