@@ -14,6 +14,14 @@ class Rule {
   String toString() {
     return 'ERule[${guard.name}]';
   }
+
+  @override
+  int get hashCode => Object.hash(guard, action);
+
+  @override
+  bool operator ==(Object other) {
+    return (other is Rule) && guard == other.guard && action == other.action;
+  }
 }
 
 class KontinuationRule extends Rule {
@@ -24,16 +32,42 @@ class KontinuationRule extends Rule {
   String toString() {
     return 'KRule[${guard.name}]';
   }
+
+  @override
+  int get hashCode => Object.hash(guard, action, frameType);
+
+  @override
+  bool operator ==(Object other) {
+    return (other is KontinuationRule) &&
+        guard == other.guard &&
+        action == other.action &&
+        frameType == frameType;
+  }
 }
 
 class Guard {
   Guard(this.name, this.code);
   String name;
   Function code;
+
+  @override
+  int get hashCode => Object.hash(name, code);
+
+  @override
+  bool operator ==(Object other) {
+    return (other is Guard) && name == other.name && code == other.code;
+  }
 }
 
 class Action {
   Action(this.name, this.code);
   String name;
   Function code;
+  @override
+  int get hashCode => Object.hash(name, code);
+
+  @override
+  bool operator ==(Object other) {
+    return (other is Action) && name == other.name && code == other.code;
+  }
 }

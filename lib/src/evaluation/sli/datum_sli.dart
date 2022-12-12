@@ -31,9 +31,8 @@ class DatumSTR {
 }
 
 initial() {}
-
+var theRules = rules();
 getActions(c) {
-  var theRules = rules();
   if (isValue(c.control) ||
       (c.control is datum.Pair &&
           isValue(c.control.car) &&
